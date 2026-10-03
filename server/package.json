@@ -9,6 +9,7 @@
   "scripts": {
     "lbuild": "nest build",
     "build": "prisma generate && nest build",
+    "postinstall": "prisma generate",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
