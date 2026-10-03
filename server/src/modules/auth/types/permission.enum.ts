@@ -29,4 +29,12 @@ export enum Permission {
   CATALOGUE_MANAGE_OPTIONS = 'catalogue:manage_options',
   CATALOGUE_MANAGE_GROUPS = 'catalogue:manage_groups',
   CATALOGUE_MANAGE_IMAGES = 'catalogue:manage_images',
+
+  // Menu operations
+  MENU_READ = 'menu:read',
+  MENU_CREATE = 'menu:create',
+  MENU_UPDATE = 'menu:update',
+  MENU_DELETE = 'menu:delete',
+  MENU_MANAGE_VISIBILITY = 'menu:manage_visibility',
+  MENU_PREVIEW = 'menu:preview',
 }

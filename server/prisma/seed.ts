@@ -471,6 +471,183 @@ async function main() {
     }
   }
 
+  // 7. Companies and Employees
+  console.log('\nSeeding Companies and Employees...');
+  const companyData = [
+    { name: 'Acme Corp' },
+    { name: 'Globex Inc' },
+    { name: 'Initech LLC' },
+  ];
+
+  const seededCompanies: Record<string, { id: string; name: string }> = {};
+  for (const comp of companyData) {
+    const record = await prisma.company.upsert({
+      where: { name: comp.name },
+      update: { isActive: true },
+      create: { name: comp.name, isActive: true },
+    });
+    seededCompanies[comp.name] = record;
+  }
+  console.log(`✓ Seeded ${companyData.length} Companies`);
+
+  // Seed customer employees (independent customer entities belonging to companies)
+  const employeesData = [
+    {
+      name: 'Alice Smith',
+      email: 'alice@acme.com',
+      company: 'Acme Corp',
+    },
+    {
+      name: 'Bob Jones',
+      email: 'bob@globex.com',
+      company: 'Globex Inc',
+    },
+    {
+      name: 'Charlie Brown',
+      email: 'charlie@initech.com',
+      company: 'Initech LLC',
+    },
+  ];
+
+  for (const emp of employeesData) {
+    await prisma.employee.upsert({
+      where: { email: emp.email },
+      update: {
+        name: emp.name,
+        companyId: seededCompanies[emp.company].id,
+        isActive: true,
+      },
+      create: {
+        name: emp.name,
+        email: emp.email,
+        companyId: seededCompanies[emp.company].id,
+        isActive: true,
+      },
+    });
+  }
+  console.log(`✓ Seeded ${employeesData.length} Employees`);
+
+  // 8. Menu Categories
+  console.log('\nSeeding Menu Categories and Category Dishes...');
+  const categoriesData = [
+    {
+      name: 'Bowls',
+      displayOrder: 1,
+      isSecret: false,
+      dishes: ['DISH-PNR-001', 'DISH-CHK-001', 'DISH-TOFU-001'],
+    },
+    {
+      name: 'Breakfast',
+      displayOrder: 2,
+      isSecret: false,
+      dishes: ['DISH-VEG-001'],
+    },
+    {
+      name: 'Desserts',
+      displayOrder: 3,
+      isSecret: false,
+      dishes: ['DISH-BRW-001'],
+    },
+    {
+      name: 'Secret Desserts',
+      displayOrder: 4,
+      isSecret: true,
+      dishes: ['DISH-BRW-001', 'DISH-PNR-001'],
+    },
+  ];
+
+  const seededCategories: Record<string, { id: string; name: string }> = {};
+  for (const cat of categoriesData) {
+    const category = await prisma.menuCategory.upsert({
+      where: { name: cat.name },
+      update: {
+        displayOrder: cat.displayOrder,
+        isSecret: cat.isSecret,
+        isActive: true,
+      },
+      create: {
+        name: cat.name,
+        displayOrder: cat.displayOrder,
+        isSecret: cat.isSecret,
+        isActive: true,
+      },
+    });
+    seededCategories[cat.name] = category;
+
+    // Seed category dishes
+    for (let dIdx = 0; dIdx < cat.dishes.length; dIdx++) {
+      const sku = cat.dishes[dIdx];
+      const dish = await prisma.dish.findUnique({ where: { sku } });
+      if (dish) {
+        await prisma.categoryDish.upsert({
+          where: {
+            categoryId_dishId: {
+              categoryId: category.id,
+              dishId: dish.id,
+            },
+          },
+          update: { displayOrder: dIdx + 1 },
+          create: {
+            categoryId: category.id,
+            dishId: dish.id,
+            displayOrder: dIdx + 1,
+          },
+        });
+      }
+    }
+  }
+  console.log(
+    `✓ Seeded ${categoriesData.length} Menu Categories and Item Assignments`,
+  );
+
+  // 9. Company Visibility Hiding Rules
+  console.log('\nSeeding Company Visibility Hiding Rules...');
+  // Company A ("Acme Corp"): Hide "Desserts" category
+  const acmeCompany = seededCompanies['Acme Corp'];
+  const dessertsCategory = seededCategories['Desserts'];
+  if (acmeCompany && dessertsCategory) {
+    await prisma.companyHiddenCategory.upsert({
+      where: {
+        companyId_categoryId: {
+          companyId: acmeCompany.id,
+          categoryId: dessertsCategory.id,
+        },
+      },
+      update: {},
+      create: {
+        companyId: acmeCompany.id,
+        categoryId: dessertsCategory.id,
+      },
+    });
+    console.log(
+      `✓ Seeded: Hidden Category 'Desserts' for Company 'Acme Corp'`,
+    );
+  }
+
+  // Company B ("Globex Inc"): Hide "Chocolate Brownie" dish
+  const globexCompany = seededCompanies['Globex Inc'];
+  const brownieDish = await prisma.dish.findUnique({
+    where: { sku: 'DISH-BRW-001' },
+  });
+  if (globexCompany && brownieDish) {
+    await prisma.companyHiddenDish.upsert({
+      where: {
+        companyId_dishId: {
+          companyId: globexCompany.id,
+          dishId: brownieDish.id,
+        },
+      },
+      update: {},
+      create: {
+        companyId: globexCompany.id,
+        dishId: brownieDish.id,
+      },
+    });
+    console.log(
+      `✓ Seeded: Hidden Dish 'Chocolate Brownie' for Company 'Globex Inc'`,
+    );
+  }
+
   console.log('\nDatabase seed finished successfully and idempotently.');
 }
 

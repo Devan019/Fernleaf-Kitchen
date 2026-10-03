@@ -50,9 +50,11 @@ model Dish {
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
 
-  allergens    Allergen[]
-  dietaryTags  DietaryTag[]
-  optionGroups OptionGroup[]
+  allergens           Allergen[]
+  dietaryTags         DietaryTag[]
+  optionGroups        OptionGroup[]
+  categoryDishes      CategoryDish[]
+  companyHiddenDishes CompanyHiddenDish[]
 
   @@index([name])
   @@index([sku])
@@ -193,4 +195,91 @@ model OptionPortion {
   @@unique([optionId, portionSizeId])
   @@index([optionId])
   @@index([portionSizeId])
+}
+
+model MenuCategory {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  displayOrder Int
+  isActive     Boolean  @default(true)
+  isSecret     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  categoryDishes          CategoryDish[]
+  companyHiddenCategories CompanyHiddenCategory[]
+
+  @@index([displayOrder])
+  @@index([isActive])
+  @@index([isSecret])
+}
+
+model CategoryDish {
+  id           String       @id @default(cuid())
+  categoryId   String
+  category     MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  dishId       String
+  dish         Dish         @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  displayOrder Int
+  createdAt    DateTime     @default(now())
+
+  @@unique([categoryId, dishId])
+  @@unique([categoryId, displayOrder])
+  @@index([categoryId])
+  @@index([dishId])
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees               Employee[]
+  companyHiddenCategories CompanyHiddenCategory[]
+  companyHiddenDishes     CompanyHiddenDish[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model Employee {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([isActive])
+}
+
+model CompanyHiddenCategory {
+  id         String       @id @default(cuid())
+  companyId  String
+  company    Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+
+  @@unique([companyId, categoryId])
+  @@index([companyId])
+  @@index([categoryId])
+}
+
+model CompanyHiddenDish {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  dishId    String
+  dish      Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([companyId, dishId])
+  @@index([companyId])
+  @@index([dishId])
 }

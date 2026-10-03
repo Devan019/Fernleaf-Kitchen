@@ -14,6 +14,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     Permission.USER_READ,
     Permission.DELIVERY_READ_ALL,
     Permission.CATALOGUE_READ,
+    Permission.MENU_READ,
   ],
 
   [UserRole.DISPATCH]: [
@@ -24,6 +25,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     Permission.DELIVERY_READ_ALL,
     Permission.USER_READ,
     Permission.CATALOGUE_READ,
+    Permission.MENU_READ,
   ],
 
   [UserRole.DRIVER]: [

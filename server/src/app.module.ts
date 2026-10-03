@@ -7,6 +7,7 @@ import { StorageModule } from './common/storage/storage.module.js';
 import { UserModule } from './modules/user/user.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { CatalogueModule } from './modules/catalogue/catalogue.module.js';
+import { MenuModule } from './modules/menu/menu.module.js';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CatalogueModule } from './modules/catalogue/catalogue.module.js';
     UserModule,
     AuthModule,
     CatalogueModule,
+    MenuModule,
   ],
   controllers: [AppController],
   providers: [AppService],
