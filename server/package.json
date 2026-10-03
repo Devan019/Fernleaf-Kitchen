@@ -24,7 +24,11 @@
     "gen:resource": "nest g resource",
     "pri:init": "prisma init",
     "pri:gen": "prisma generate",
-    "pri:migrate": "prisma migrate dev --preview-feature"
+    "pri:migrate": "prisma migrate dev --preview-feature",
+    "seed": "bun run prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -34,6 +38,9 @@
     "@nestjs/swagger": "^12.0.2",
     "@prisma/adapter-pg": "7",
     "@prisma/client": "7",
+    "argon2": "^0.45.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "dotenv": "^18.0.5",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",

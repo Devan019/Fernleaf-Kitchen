@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
@@ -9,7 +10,6 @@ const server = express();
 let initialized = false;
 
 async function bootstrap() {
-
   if (initialized) {
     return;
   }
@@ -19,13 +19,22 @@ async function bootstrap() {
     new ExpressAdapter(server),
   );
 
-  //CORS
+  // Global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  // CORS
   app.enableCors({
     origin: process.env.CLIENT_URL,
     credentials: true,
   });
 
-  //swagger configuration 
+  // Swagger configuration 
   const config = new DocumentBuilder()
     .setTitle('Fernleaf Kitchen API')
     .setDescription('API Documentation for Fernleaf Kitchen')
@@ -43,13 +52,11 @@ async function bootstrap() {
     ],
   });
 
-
   await app.init();
   initialized = true;
 }
 
-
-//vercel handler - for serverless function
+// Vercel handler - for serverless function
 export default async function handler(req: any, res: any) {
   await bootstrap();
   return server(req, res);
