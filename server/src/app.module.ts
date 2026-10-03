@@ -13,6 +13,7 @@ import { CompaniesModule } from './modules/company/company.module.js';
 import { EmployeesModule } from './modules/employee/employee.module.js';
 import { OrderModule } from './modules/order/order.module.js';
 import { KitchenModule } from './modules/kitchen/kitchen.module.js';
+import { DispatchModule } from './modules/dispatch/dispatch.module.js';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { KitchenModule } from './modules/kitchen/kitchen.module.js';
     EmployeesModule,
     OrderModule,
     KitchenModule,
+    DispatchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

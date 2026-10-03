@@ -21,6 +21,8 @@ model User {
   OrderStatusHistory     OrderStatusHistory[]
   kitchenUnitsStarted    KitchenUnit[]        @relation("KitchenUnitStartedBy")
   kitchenUnitsCompleted  KitchenUnit[]        @relation("KitchenUnitCompletedBy")
+  driverDrops            DeliveryDrop[]       @relation("DriverDrops")
+  dropStatusChanges      DropStatusHistory[]
 }
 
 model Dish {
@@ -243,6 +245,7 @@ model Company {
   deliveryAddresses          DeliveryAddress[]
   employees                  Employee[]              @relation("CompanyEmployees")
   Order                      Order[]
+  deliveryDrops              DeliveryDrop[]
 
   @@index([name])
   @@index([isActive])
@@ -444,6 +447,10 @@ model Order {
   kitchenReadyAt         DateTime?
   plannedKitchenReadyAt  DateTime?
   plannedDispatchReadyAt DateTime?
+  dropId                 String?
+  fulfillmentStatus      FulfillmentStatus    @default(KITCHEN_PENDING)
+  dispatchReadyAt        DateTime?
+  outForDeliveryAt       DateTime?
   createdAt              DateTime             @default(now())
   updatedAt              DateTime
   Company                Company              @relation(fields: [companyId], references: [id])
@@ -452,6 +459,7 @@ model Order {
   OrderLine              OrderLine[]
   OrderStatusHistory     OrderStatusHistory[]
   kitchenUnits           KitchenUnit[]
+  deliveryDrop           DeliveryDrop?        @relation(fields: [dropId], references: [id], onDelete: SetNull)
 
   @@index([companyId])
   @@index([createdAt])
@@ -461,6 +469,8 @@ model Order {
   @@index([status])
   @@index([plannedKitchenReadyAt])
   @@index([kitchenReadyAt])
+  @@index([dropId])
+  @@index([fulfillmentStatus])
 }
 
 model OrderCombinationOption {
@@ -602,5 +612,74 @@ model KitchenUnit {
   @@index([orderLineId])
   @@index([kitchenStationId])
   @@index([status])
+}
+
+enum DeliveryDropStatus {
+  KITCHEN_READY
+  DISPATCH_READY
+  OUT_FOR_DELIVERY
+  DELIVERED
+}
+
+enum FulfillmentStatus {
+  KITCHEN_PENDING
+  KITCHEN_READY
+  DISPATCH_READY
+  OUT_FOR_DELIVERY
+  DELIVERED
+}
+
+model DeliveryDrop {
+  id                   String              @id @default(cuid())
+  companyId            String
+  deliveryDate         DateTime            @db.Date
+  deliveryTime         String
+  groupingKey          String              @unique
+
+  deliveryStreet       String
+  deliveryUnit         String?
+  deliveryCity         String
+  deliveryPostcode     String
+  deliveryInstructions String?
+
+  status               DeliveryDropStatus  @default(KITCHEN_READY)
+  driverId             String?
+
+  dispatchReadyAt      DateTime?
+  outForDeliveryAt     DateTime?
+  deliveredAt          DateTime?
+
+  deliveredNote        String?
+  deliveredPhotoUrl    String?
+  isOnTime             Boolean?
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  company              Company             @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  driver               User?               @relation("DriverDrops", fields: [driverId], references: [id], onDelete: SetNull)
+  orders               Order[]
+  statusHistory        DropStatusHistory[]
+
+  @@index([deliveryDate])
+  @@index([status])
+  @@index([driverId])
+  @@index([companyId, deliveryDate, deliveryTime])
+}
+
+model DropStatusHistory {
+  id              String              @id @default(cuid())
+  dropId          String
+  fromStatus      DeliveryDropStatus?
+  toStatus        DeliveryDropStatus
+  changedByUserId String?
+  note            String?
+  createdAt       DateTime            @default(now())
+
+  drop            DeliveryDrop        @relation(fields: [dropId], references: [id], onDelete: Cascade)
+  changedByUser   User?               @relation(fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([dropId])
+  @@index([createdAt])
 }
 
