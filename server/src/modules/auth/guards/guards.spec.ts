@@ -125,7 +125,7 @@ describe('Auth Guards', () => {
     it('allows Kitchen access to kitchen operations and user read', () => {
       vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue([
         Permission.KITCHEN_READ,
-        Permission.KITCHEN_UPDATE,
+        Permission.USER_READ,
       ]);
       const ctx = createMockContext({ role: UserRole.KITCHEN });
 

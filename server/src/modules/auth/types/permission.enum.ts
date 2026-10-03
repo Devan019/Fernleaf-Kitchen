@@ -19,4 +19,14 @@ export enum Permission {
   DELIVERY_TRACK = 'delivery:track',
   DELIVERY_READ_OWN = 'delivery:read_own',
   DELIVERY_UPDATE_OWN = 'delivery:update_own',
+
+  // Catalogue operations
+  CATALOGUE_READ = 'catalogue:read',
+  CATALOGUE_CREATE = 'catalogue:create',
+  CATALOGUE_UPDATE = 'catalogue:update',
+  CATALOGUE_DELETE = 'catalogue:delete',
+  CATALOGUE_MANAGE_REFERENCE_DATA = 'catalogue:manage_reference_data',
+  CATALOGUE_MANAGE_OPTIONS = 'catalogue:manage_options',
+  CATALOGUE_MANAGE_GROUPS = 'catalogue:manage_groups',
+  CATALOGUE_MANAGE_IMAGES = 'catalogue:manage_images',
 }

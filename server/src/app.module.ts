@@ -3,8 +3,10 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './common/prisma/prisma.module.js';
+import { StorageModule } from './common/storage/storage.module.js';
 import { UserModule } from './modules/user/user.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { CatalogueModule } from './modules/catalogue/catalogue.module.js';
 
 @Module({
   imports: [
@@ -12,8 +14,10 @@ import { AuthModule } from './modules/auth/auth.module.js';
       isGlobal: true,
     }),
     PrismaModule,
+    StorageModule,
     UserModule,
     AuthModule,
+    CatalogueModule,
   ],
   controllers: [AppController],
   providers: [AppService],

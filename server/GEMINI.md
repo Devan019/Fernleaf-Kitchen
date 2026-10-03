@@ -18,6 +18,7 @@ Fernleaf Kitchen Server is a backend API service for managing kitchen operations
 - `src/generated/prisma/`: Generated Prisma client code (`prisma-client` generator target).
 - `src/common/`: Cross-cutting modules and shared utilities:
   - `prisma/`: `PrismaModule` and `PrismaService` extending the generated PrismaClient.
+  - `storage/`: `StorageModule` and `StorageService` S3-compatible object storage abstraction for Cloudflare R2 image assets.
   - `utils/`: Reusable cross-cutting helpers:
     - `password/`: Argon2id password hashing and verification (`hashPassword`, `verifyPassword`).
     - `pagination/`: Server-side pagination calculations and response wrappers (`calculatePagination`, `createPaginatedResponse`).
@@ -33,9 +34,14 @@ Fernleaf Kitchen Server is a backend API service for managing kitchen operations
     - `guards/`: Route protection guards (`JwtAuthGuard`, `RolesGuard`, `PermissionsGuard`).
     - `strategies/`: Passport JWT strategy (`JwtStrategy`) with dual HTTP-only cookie and Bearer token extraction (`cookieExtractor`).
     - `types/`: Type definitions (`AuthenticatedUser`, `JwtPayload`, `Permission`).
+  - `catalogue/`: Catalogue management (dishes, options, option groups, portions, and reference data):
+    - `dishes/`: Dish management, soft deactivation, multi-relationship configurations, and image upload/storage.
+    - `options/`: Reusable options with portion charges, allergens, and dietary tags.
+    - `option-groups/`: Dish option groups, display ordering, portion enforcement, and group options/portions.
+    - `reference-data/`: Admin-managed allergens, dietary tags, kitchen stations, and portion sizes.
 - `src/main.ts`: Local server bootstrap with Swagger UI, CORS, cookie parser, and validation pipes.
 - `src/index.ts`: Serverless Express handler for Vercel deployment.
-- `test/`: End-to-end (E2E) integration test suites (`app.e2e-spec.ts`, `user.e2e-spec.ts`, `auth.e2e-spec.ts`).
+- `test/`: End-to-end (E2E) integration test suites (`app.e2e-spec.ts`, `user.e2e-spec.ts`, `auth.e2e-spec.ts`, `catalogue.e2e-spec.ts`).
 
 ## Architecture
 - **Modular Domain Architecture**: Built on standard NestJS module separation (`AppModule` importing domain modules from `src/modules/`).
@@ -59,7 +65,9 @@ Fernleaf Kitchen Server is a backend API service for managing kitchen operations
 - **ORM & Configuration**: Prisma 7 configured in `prisma7.config.ts` and `prisma/schema.prisma`.
 - **Generated Client**: Emitted to `src/generated/prisma` rather than `node_modules/@prisma/client`.
 - **Migrations**: Stored in `prisma/migrations/`.
-- **Seed Script**: `prisma/seed.ts` upserts default staff accounts across roles using Argon2 password hashing.
+- **Catalogue Models**: `Dish`, `Option`, `OptionGroup`, `OptionGroupOption`, `Allergen`, `DietaryTag`, `KitchenStation`, `PortionSize`, `OptionGroupPortion`, `OptionPortion`.
+- **Monetary Storage**: Stored as high-precision `Prisma.Decimal` (`@db.Decimal(10, 2)`). Never float.
+- **Seed Script**: `prisma/seed.ts` idempotently upserts default staff accounts, allergens, dietary tags, kitchen stations, portion sizes, options with portion charges, and dishes with configured option groups.
 
 ## Authentication & Authorization
 - **Staff Roles**: Enumerated in schema as `ADMIN`, `KITCHEN`, `DISPATCH`, `DRIVER`.
@@ -69,6 +77,11 @@ Fernleaf Kitchen Server is a backend API service for managing kitchen operations
 - **Active State Verification**: `JwtStrategy` loads the user fresh from the database on each authenticated request to ensure `isActive === true`.
 - **Centralized Permission Registry**: Operational permissions (`Permission` enum) mapped to roles in `ROLE_PERMISSIONS`. Adding future roles requires updating this single dictionary without modifying controllers.
 - **Server-Side Enforcement**: Enforced via `@UseGuards(JwtAuthGuard, RolesGuard)` or `@UseGuards(JwtAuthGuard, PermissionsGuard)`.
+- **Catalogue Access Control**:
+  - `ADMIN`: Full catalogue management (create, read, update, deactivate, manage options, groups, portions, reference data, images).
+  - `KITCHEN`: Read-only access to catalogue entities (`Permission.CATALOGUE_READ`). Mutations return 403 Forbidden.
+  - `DISPATCH`: Read-only access to catalogue entities (`Permission.CATALOGUE_READ`). Mutations return 403 Forbidden.
+  - `DRIVER`: No catalogue access. Any request to catalogue endpoints returns 403 Forbidden.
 - **User Management Access Control**: All user management operations (`POST /users`, `GET /users`, `GET /users/:id`, `PATCH /users/:id`, `DELETE /users/:id`) are strictly restricted to the `ADMIN` role via `@Roles(UserRole.ADMIN)` at the controller and route level.
 
 ## Development Commands

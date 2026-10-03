@@ -29,3 +29,168 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+enum DishTemperature {
+  HOT
+  COLD
+}
+
+model Dish {
+  id                   String          @id @default(cuid())
+  name                 String
+  description          String?
+  imageUrl             String?
+  sku                  String          @unique
+  temperature          DishTemperature
+  costPrice            Decimal         @db.Decimal(10, 2)
+  minimumOrderQuantity Int?
+  kitchenStationId     String?
+  kitchenStation       KitchenStation? @relation(fields: [kitchenStationId], references: [id], onDelete: SetNull)
+  isActive             Boolean         @default(true)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  allergens    Allergen[]
+  dietaryTags  DietaryTag[]
+  optionGroups OptionGroup[]
+
+  @@index([name])
+  @@index([sku])
+  @@index([isActive])
+  @@index([kitchenStationId])
+}
+
+model Option {
+  id        String   @id @default(cuid())
+  name      String
+  costPrice Decimal  @db.Decimal(10, 2)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  allergens          Allergen[]
+  dietaryTags        DietaryTag[]
+  optionGroupOptions OptionGroupOption[]
+  optionPortions     OptionPortion[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model OptionGroup {
+  id           String   @id @default(cuid())
+  dishId       String
+  dish         Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  name         String
+  isRequired   Boolean  @default(false)
+  displayOrder Int
+  usesPortions Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  optionGroupOptions  OptionGroupOption[]
+  optionGroupPortions OptionGroupPortion[]
+
+  @@unique([dishId, displayOrder])
+  @@index([dishId])
+}
+
+model OptionGroupOption {
+  id            String      @id @default(cuid())
+  optionGroupId String
+  optionGroup   OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+  optionId      String
+  option        Option      @relation(fields: [optionId], references: [id], onDelete: Restrict)
+  displayOrder  Int
+  createdAt     DateTime    @default(now())
+
+  @@unique([optionGroupId, optionId])
+  @@unique([optionGroupId, displayOrder])
+  @@index([optionGroupId])
+  @@index([optionId])
+}
+
+model Allergen {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dishes  Dish[]
+  options Option[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model DietaryTag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dishes  Dish[]
+  options Option[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model KitchenStation {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dishes Dish[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model PortionSize {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  optionGroupPortions OptionGroupPortion[]
+  optionPortions      OptionPortion[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model OptionGroupPortion {
+  id            String      @id @default(cuid())
+  optionGroupId String
+  optionGroup   OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+  portionSizeId String
+  portionSize   PortionSize @relation(fields: [portionSizeId], references: [id], onDelete: Restrict)
+  displayOrder  Int
+  createdAt     DateTime    @default(now())
+
+  @@unique([optionGroupId, portionSizeId])
+  @@unique([optionGroupId, displayOrder])
+  @@index([optionGroupId])
+  @@index([portionSizeId])
+}
+
+model OptionPortion {
+  id            String      @id @default(cuid())
+  optionId      String
+  option        Option      @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  portionSizeId String
+  portionSize   PortionSize @relation(fields: [portionSizeId], references: [id], onDelete: Restrict)
+  extraCharge   Decimal     @db.Decimal(10, 2)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([optionId, portionSizeId])
+  @@index([optionId])
+  @@index([portionSizeId])
+}
