@@ -74,6 +74,10 @@ export interface OrderSummaryResponse {
   deliveredAt: Date | null;
   cancelledAt: Date | null;
   rejectedAt: Date | null;
+  kitchenStartedAt?: Date | null;
+  kitchenReadyAt?: Date | null;
+  plannedKitchenReadyAt?: Date | null;
+  plannedDispatchReadyAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   linesCount: number;

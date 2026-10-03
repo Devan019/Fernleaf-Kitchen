@@ -19,6 +19,8 @@ model User {
   defaultDriverCompanies Company[]            @relation("CompanyDefaultDriver")
   Order                  Order[]
   OrderStatusHistory     OrderStatusHistory[]
+  kitchenUnitsStarted    KitchenUnit[]        @relation("KitchenUnitStartedBy")
+  kitchenUnitsCompleted  KitchenUnit[]        @relation("KitchenUnitCompletedBy")
 }
 
 model Dish {
@@ -131,9 +133,10 @@ model KitchenStation {
   id        String   @id @default(cuid())
   name      String   @unique
   isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   dishes    Dish[]
+  kitchenUnits KitchenUnit[]
 
   @@index([name])
   @@index([isActive])
@@ -431,19 +434,24 @@ model Order {
   subtotal             Decimal              @db.Decimal(10, 2)
   total                Decimal              @db.Decimal(10, 2)
   createdByUserId      String?
-  isInvoiced           Boolean              @default(false)
-  placedAt             DateTime?
-  confirmedAt          DateTime?
-  deliveredAt          DateTime?
-  cancelledAt          DateTime?
-  rejectedAt           DateTime?
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime
-  Company              Company              @relation(fields: [companyId], references: [id])
-  User                 User?                @relation(fields: [createdByUserId], references: [id])
-  Employee             Employee             @relation(fields: [employeeId], references: [id])
-  OrderLine            OrderLine[]
-  OrderStatusHistory   OrderStatusHistory[]
+  isInvoiced             Boolean              @default(false)
+  placedAt               DateTime?
+  confirmedAt            DateTime?
+  deliveredAt            DateTime?
+  cancelledAt            DateTime?
+  rejectedAt             DateTime?
+  kitchenStartedAt       DateTime?
+  kitchenReadyAt         DateTime?
+  plannedKitchenReadyAt  DateTime?
+  plannedDispatchReadyAt DateTime?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime
+  Company                Company              @relation(fields: [companyId], references: [id])
+  User                   User?                @relation(fields: [createdByUserId], references: [id])
+  Employee               Employee             @relation(fields: [employeeId], references: [id])
+  OrderLine              OrderLine[]
+  OrderStatusHistory     OrderStatusHistory[]
+  kitchenUnits           KitchenUnit[]
 
   @@index([companyId])
   @@index([createdAt])
@@ -451,6 +459,8 @@ model Order {
   @@index([employeeId])
   @@index([isInvoiced])
   @@index([status])
+  @@index([plannedKitchenReadyAt])
+  @@index([kitchenReadyAt])
 }
 
 model OrderCombinationOption {
@@ -487,6 +497,7 @@ model OrderLine {
   Dish                 Dish                   @relation(fields: [dishId], references: [id])
   Order                Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   OrderLineCombination OrderLineCombination[]
+  kitchenUnits         KitchenUnit[]
 
   @@index([dishId])
   @@index([orderId])
@@ -502,6 +513,7 @@ model OrderLineCombination {
   updatedAt              DateTime
   OrderCombinationOption OrderCombinationOption[]
   OrderLine              OrderLine                @relation(fields: [orderLineId], references: [id], onDelete: Cascade)
+  kitchenUnit            KitchenUnit?
 
   @@index([orderLineId])
 }
@@ -557,3 +569,38 @@ enum OrderStatus {
   CANCELLED
   REJECTED
 }
+
+enum KitchenUnitStatus {
+  PENDING
+  STARTED
+  DONE
+}
+
+model KitchenUnit {
+  id                String               @id @default(cuid())
+  orderId           String
+  orderLineId       String
+  combinationId     String               @unique
+  kitchenStationId  String?
+  status            KitchenUnitStatus    @default(PENDING)
+  quantity          Int
+  startedAt         DateTime?
+  completedAt       DateTime?
+  startedByUserId   String?
+  completedByUserId String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  order             Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderLine         OrderLine            @relation(fields: [orderLineId], references: [id], onDelete: Cascade)
+  combination       OrderLineCombination @relation(fields: [combinationId], references: [id], onDelete: Cascade)
+  kitchenStation    KitchenStation?      @relation(fields: [kitchenStationId], references: [id], onDelete: SetNull)
+  startedByUser     User?                @relation("KitchenUnitStartedBy", fields: [startedByUserId], references: [id], onDelete: SetNull)
+  completedByUser   User?                @relation("KitchenUnitCompletedBy", fields: [completedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([orderLineId])
+  @@index([kitchenStationId])
+  @@index([status])
+}
+

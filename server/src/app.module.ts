@@ -12,6 +12,7 @@ import { PricingModule } from './modules/pricing/pricing.module.js';
 import { CompaniesModule } from './modules/company/company.module.js';
 import { EmployeesModule } from './modules/employee/employee.module.js';
 import { OrderModule } from './modules/order/order.module.js';
+import { KitchenModule } from './modules/kitchen/kitchen.module.js';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { OrderModule } from './modules/order/order.module.js';
     CompaniesModule,
     EmployeesModule,
     OrderModule,
+    KitchenModule,
   ],
   controllers: [AppController],
   providers: [AppService],

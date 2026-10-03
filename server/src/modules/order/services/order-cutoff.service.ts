@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../../../common/prisma/prisma.service.js';
 import { DayOfWeek, OrderStatus } from '../../../generated/prisma/enums.js';
+import { KitchenUnitService } from '../../kitchen/kitchen-unit.service.js';
 import { CutoffCheckResult, CutoffProcessResult } from '../types/order.types.js';
 
 const DAY_OF_WEEK_MAP: readonly DayOfWeek[] = [
@@ -25,7 +26,10 @@ export interface KitchenSettingsConfig {
 export class OrderCutoffService {
   private readonly logger = new Logger(OrderCutoffService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly kitchenUnitService?: KitchenUnitService,
+  ) {}
 
   /**
    * Retrieves the dynamic kitchen settings from database or sensible defaults.
@@ -276,6 +280,12 @@ export class OrderCutoffService {
               createdAt: now,
             },
           });
+        }
+
+        if (this.kitchenUnitService) {
+          for (const order of placedOrders) {
+            await this.kitchenUnitService.ensureUnitsForOrder(order.id, tx);
+          }
         }
       }
 

@@ -8,6 +8,7 @@ export enum Permission {
   // Kitchen operations
   KITCHEN_READ = 'kitchen:read',
   KITCHEN_UPDATE = 'kitchen:update',
+  KITCHEN_FORCE_COMPLETE = 'kitchen:force_complete',
 
   // Dispatch operations
   DISPATCH_READ = 'dispatch:read',

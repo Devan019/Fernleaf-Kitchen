@@ -38,6 +38,7 @@ import {
 } from './services/order-pricing.service.js';
 import { OrderStatusService } from './services/order-status.service.js';
 import { OrderValidationService } from './services/order-validation.service.js';
+import { calculatePlannedTimes } from '../kitchen/utils/kitchen-time.utils.js';
 
 @Injectable()
 export class OrderService {
@@ -110,6 +111,13 @@ export class OrderService {
       dto.lines,
     );
 
+    const { plannedDispatchReadyAt, plannedKitchenReadyAt } =
+      calculatePlannedTimes(
+        deliveryDateStr,
+        deliveryDetails.deliveryTime,
+        company.leaveKitchenMinutes,
+      );
+
     const orderId = randomUUID();
     const orderNumber = this.generateOrderNumber(deliveryDateStr);
     const now = new Date();
@@ -143,6 +151,8 @@ export class OrderService {
             total: pricing.total,
             createdByUserId: userId ?? null,
             placedAt: isPlacing ? now : null,
+            plannedDispatchReadyAt,
+            plannedKitchenReadyAt,
             createdAt: now,
             updatedAt: now,
           },
@@ -402,6 +412,13 @@ export class OrderService {
 
     const now = new Date();
 
+    const { plannedDispatchReadyAt, plannedKitchenReadyAt } =
+      calculatePlannedTimes(
+        targetDateStr,
+        deliveryDetails.deliveryTime,
+        company.leaveKitchenMinutes,
+      );
+
     await this.prisma.$transaction(async (tx) => {
       if (dto.lines && dto.lines.length > 0) {
         await tx.orderLine.deleteMany({
@@ -428,6 +445,8 @@ export class OrderService {
           deliveryInstructions: deliveryDetails.deliveryInstructions,
           subtotal: pricing.subtotal,
           total: pricing.total,
+          plannedDispatchReadyAt,
+          plannedKitchenReadyAt,
           updatedAt: now,
         },
       });
@@ -526,11 +545,19 @@ export class OrderService {
 
     const now = new Date();
 
+    const finalDeliveryTime = dto.deliveryTime ?? order.deliveryTime;
+    const { plannedDispatchReadyAt, plannedKitchenReadyAt } =
+      calculatePlannedTimes(
+        order.deliveryDate,
+        finalDeliveryTime,
+        order.Company.leaveKitchenMinutes,
+      );
+
     await this.prisma.$transaction(async (tx) => {
       await tx.order.update({
         where: { id: order.id },
         data: {
-          deliveryTime: dto.deliveryTime ?? order.deliveryTime,
+          deliveryTime: finalDeliveryTime,
           packagingType: dto.packagingType ?? order.packagingType,
           deliveryAddressId: addressSnapshot.deliveryAddressId,
           deliveryAddressLabel: addressSnapshot.deliveryAddressLabel,
@@ -539,6 +566,8 @@ export class OrderService {
           deliveryCity: addressSnapshot.deliveryCity,
           deliveryPostcode: addressSnapshot.deliveryPostcode,
           deliveryInstructions: addressSnapshot.deliveryInstructions,
+          plannedDispatchReadyAt,
+          plannedKitchenReadyAt,
           updatedAt: now,
         },
       });
@@ -924,6 +953,10 @@ export class OrderService {
       deliveredAt: o.deliveredAt,
       cancelledAt: o.cancelledAt,
       rejectedAt: o.rejectedAt,
+      kitchenStartedAt: o.kitchenStartedAt,
+      kitchenReadyAt: o.kitchenReadyAt,
+      plannedKitchenReadyAt: o.plannedKitchenReadyAt,
+      plannedDispatchReadyAt: o.plannedDispatchReadyAt,
       createdAt: o.createdAt,
       updatedAt: o.updatedAt,
       linesCount: o._count.OrderLine,
@@ -1065,6 +1098,10 @@ export class OrderService {
       deliveredAt: order.deliveredAt,
       cancelledAt: order.cancelledAt,
       rejectedAt: order.rejectedAt,
+      kitchenStartedAt: order.kitchenStartedAt,
+      kitchenReadyAt: order.kitchenReadyAt,
+      plannedKitchenReadyAt: order.plannedKitchenReadyAt,
+      plannedDispatchReadyAt: order.plannedDispatchReadyAt,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       linesCount: lines.length,
