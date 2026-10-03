@@ -96,4 +96,5 @@ export interface CompanyDetailResponse {
   updatedAt: Date;
 }
 
-export type PaginatedCompaniesResponse = PaginatedResult<CompanySummaryResponse>;
+export type PaginatedCompaniesResponse =
+  PaginatedResult<CompanySummaryResponse>;

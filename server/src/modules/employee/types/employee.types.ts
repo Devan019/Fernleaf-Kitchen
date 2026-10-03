@@ -27,7 +27,8 @@ export interface EmployeeSummaryResponse {
   updatedAt: Date;
 }
 
-export type PaginatedEmployeesResponse = PaginatedResult<EmployeeSummaryResponse>;
+export type PaginatedEmployeesResponse =
+  PaginatedResult<EmployeeSummaryResponse>;
 
 export interface BulkImportRowError {
   row: number;

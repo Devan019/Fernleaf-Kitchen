@@ -120,7 +120,10 @@ describe('CompaniesService', () => {
     });
 
     // 2026-10-04 is Sunday (non-working)
-    const result = await service.checkDeliveryAvailability('comp-1', '2026-10-04');
+    const result = await service.checkDeliveryAvailability(
+      'comp-1',
+      '2026-10-04',
+    );
     expect(result.allowed).toBe(false);
     expect(result.reason).toContain('non-working');
   });

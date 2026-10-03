@@ -455,7 +455,9 @@ describe('Companies Module (e2e)', () => {
 
       // 13. Check delivery availability on holiday date (2026-12-25 is Friday, a working day, but is a company holiday)
       const availHoliday = await request(app.getHttpServer())
-        .get(`/companies/${testCompanyId}/delivery-availability?date=2026-12-25`)
+        .get(
+          `/companies/${testCompanyId}/delivery-availability?date=2026-12-25`,
+        )
         .set('Cookie', adminCookie)
         .expect(200);
 
@@ -464,7 +466,9 @@ describe('Companies Module (e2e)', () => {
 
       // Check delivery availability on a Sunday (2026-10-04 is Sunday -> non-working day)
       const availSunday = await request(app.getHttpServer())
-        .get(`/companies/${testCompanyId}/delivery-availability?date=2026-10-04`)
+        .get(
+          `/companies/${testCompanyId}/delivery-availability?date=2026-10-04`,
+        )
         .set('Cookie', adminCookie)
         .expect(200);
 
@@ -473,7 +477,9 @@ describe('Companies Module (e2e)', () => {
 
       // Check delivery availability on a normal working Friday (2026-10-09 is Friday)
       const availNormal = await request(app.getHttpServer())
-        .get(`/companies/${testCompanyId}/delivery-availability?date=2026-10-09`)
+        .get(
+          `/companies/${testCompanyId}/delivery-availability?date=2026-10-09`,
+        )
         .set('Cookie', adminCookie)
         .expect(200);
 
@@ -541,7 +547,9 @@ describe('Companies Module (e2e)', () => {
     it('17. Company can hide a category', async () => {
       // Hide category
       await request(app.getHttpServer())
-        .post(`/companies/${testCompanyId}/hidden-categories/${bowlsCategoryId}`)
+        .post(
+          `/companies/${testCompanyId}/hidden-categories/${bowlsCategoryId}`,
+        )
         .set('Cookie', adminCookie)
         .expect(200);
 
@@ -555,13 +563,17 @@ describe('Companies Module (e2e)', () => {
 
       // Duplicate hide returns 409
       await request(app.getHttpServer())
-        .post(`/companies/${testCompanyId}/hidden-categories/${bowlsCategoryId}`)
+        .post(
+          `/companies/${testCompanyId}/hidden-categories/${bowlsCategoryId}`,
+        )
         .set('Cookie', adminCookie)
         .expect(409);
 
       // Unhide category
       await request(app.getHttpServer())
-        .delete(`/companies/${testCompanyId}/hidden-categories/${bowlsCategoryId}`)
+        .delete(
+          `/companies/${testCompanyId}/hidden-categories/${bowlsCategoryId}`,
+        )
         .set('Cookie', adminCookie)
         .expect(200);
 
@@ -570,7 +582,9 @@ describe('Companies Module (e2e)', () => {
         .set('Cookie', adminCookie)
         .expect(200);
 
-      expect(companyAfter.body.hiddenCategoryIds).not.toContain(bowlsCategoryId);
+      expect(companyAfter.body.hiddenCategoryIds).not.toContain(
+        bowlsCategoryId,
+      );
     });
 
     it('18. Company can hide a dish', async () => {

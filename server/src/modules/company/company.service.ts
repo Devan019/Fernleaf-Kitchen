@@ -127,34 +127,37 @@ export class CompaniesService {
     }
 
     // 5. Create company with initial domains in a transaction
-    const company = await this.prisma.$transaction(async (tx) => {
-      const created = await tx.company.create({
-        data: {
-          name: dto.name,
-          billingContactName: dto.billingContactName,
-          billingContactEmail: dto.billingContactEmail,
-          billingContactPhone: dto.billingContactPhone,
-          workingDays: dto.workingDays ?? [
-            DayOfWeek.MONDAY,
-            DayOfWeek.TUESDAY,
-            DayOfWeek.WEDNESDAY,
-            DayOfWeek.THURSDAY,
-            DayOfWeek.FRIDAY,
-          ],
-          defaultDeliveryTime: dto.defaultDeliveryTime,
-          leaveKitchenMinutes: dto.leaveKitchenMinutes ?? 60,
-          defaultPackagingType: dto.defaultPackagingType,
-          standingDriverInstructions: dto.standingDriverInstructions,
-          defaultDriverId: dto.defaultDriverId,
-          priceTierId: dto.priceTierId,
-          isActive: dto.isActive ?? true,
-          emailDomains: {
-            create: validatedDomains.map((domain) => ({ domain })),
+    const company = await this.prisma.$transaction(
+      async (tx) => {
+        const created = await tx.company.create({
+          data: {
+            name: dto.name,
+            billingContactName: dto.billingContactName,
+            billingContactEmail: dto.billingContactEmail,
+            billingContactPhone: dto.billingContactPhone,
+            workingDays: dto.workingDays ?? [
+              DayOfWeek.MONDAY,
+              DayOfWeek.TUESDAY,
+              DayOfWeek.WEDNESDAY,
+              DayOfWeek.THURSDAY,
+              DayOfWeek.FRIDAY,
+            ],
+            defaultDeliveryTime: dto.defaultDeliveryTime,
+            leaveKitchenMinutes: dto.leaveKitchenMinutes ?? 60,
+            defaultPackagingType: dto.defaultPackagingType,
+            standingDriverInstructions: dto.standingDriverInstructions,
+            defaultDriverId: dto.defaultDriverId,
+            priceTierId: dto.priceTierId,
+            isActive: dto.isActive ?? true,
+            emailDomains: {
+              create: validatedDomains.map((domain) => ({ domain })),
+            },
           },
-        },
-      });
-      return created;
-    }, { timeout: 15000, maxWait: 10000 });
+        });
+        return created;
+      },
+      { timeout: 15000, maxWait: 10000 },
+    );
 
     return this.findById(company.id);
   }
@@ -199,7 +202,9 @@ export class CompaniesService {
       name: c.name,
       isActive: c.isActive,
       priceTierId: c.priceTierId,
-      priceTier: c.priceTier ? { id: c.priceTier.id, name: c.priceTier.name } : null,
+      priceTier: c.priceTier
+        ? { id: c.priceTier.id, name: c.priceTier.name }
+        : null,
       ownerId: c.ownerId,
       owner: c.owner
         ? { id: c.owner.id, name: c.owner.name, email: c.owner.email }
@@ -224,7 +229,9 @@ export class CompaniesService {
         owner: { select: { id: true, name: true, email: true } },
         defaultDriver: { select: { id: true, name: true, email: true } },
         emailDomains: { orderBy: { createdAt: 'asc' } },
-        deliveryAddresses: { orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }] },
+        deliveryAddresses: {
+          orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+        },
         holidays: { orderBy: { date: 'asc' } },
         companyHiddenCategories: { select: { categoryId: true } },
         companyHiddenDishes: { select: { dishId: true } },
@@ -289,7 +296,9 @@ export class CompaniesService {
         createdAt: h.createdAt,
         updatedAt: h.updatedAt,
       })),
-      hiddenCategoryIds: company.companyHiddenCategories.map((hc) => hc.categoryId),
+      hiddenCategoryIds: company.companyHiddenCategories.map(
+        (hc) => hc.categoryId,
+      ),
       hiddenDishIds: company.companyHiddenDishes.map((hd) => hd.dishId),
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
@@ -299,7 +308,10 @@ export class CompaniesService {
   /**
    * Update an existing company.
    */
-  async update(id: string, dto: UpdateCompanyDto): Promise<CompanyDetailResponse> {
+  async update(
+    id: string,
+    dto: UpdateCompanyDto,
+  ): Promise<CompanyDetailResponse> {
     const existing = await this.prisma.company.findUnique({
       where: { id },
     });
@@ -572,27 +584,30 @@ export class CompaniesService {
     const isFirstAddress = existingCount === 0;
     const shouldBeDefault = isFirstAddress || dto.isDefault === true;
 
-    const address = await this.prisma.$transaction(async (tx) => {
-      if (shouldBeDefault && !isFirstAddress) {
-        await tx.deliveryAddress.updateMany({
-          where: { companyId },
-          data: { isDefault: false },
-        });
-      }
+    const address = await this.prisma.$transaction(
+      async (tx) => {
+        if (shouldBeDefault && !isFirstAddress) {
+          await tx.deliveryAddress.updateMany({
+            where: { companyId },
+            data: { isDefault: false },
+          });
+        }
 
-      return tx.deliveryAddress.create({
-        data: {
-          companyId,
-          label: dto.label,
-          street: dto.street,
-          unit: dto.unit,
-          city: dto.city,
-          postcode: dto.postcode,
-          deliveryInstructions: dto.deliveryInstructions,
-          isDefault: shouldBeDefault,
-        },
-      });
-    }, { timeout: 15000, maxWait: 10000 });
+        return tx.deliveryAddress.create({
+          data: {
+            companyId,
+            label: dto.label,
+            street: dto.street,
+            unit: dto.unit,
+            city: dto.city,
+            postcode: dto.postcode,
+            deliveryInstructions: dto.deliveryInstructions,
+            isDefault: shouldBeDefault,
+          },
+        });
+      },
+      { timeout: 15000, maxWait: 10000 },
+    );
 
     return {
       id: address.id,
@@ -627,27 +642,30 @@ export class CompaniesService {
       );
     }
 
-    const updated = await this.prisma.$transaction(async (tx) => {
-      if (dto.isDefault === true) {
-        await tx.deliveryAddress.updateMany({
-          where: { companyId },
-          data: { isDefault: false },
-        });
-      }
+    const updated = await this.prisma.$transaction(
+      async (tx) => {
+        if (dto.isDefault === true) {
+          await tx.deliveryAddress.updateMany({
+            where: { companyId },
+            data: { isDefault: false },
+          });
+        }
 
-      return tx.deliveryAddress.update({
-        where: { id: addressId },
-        data: {
-          label: dto.label,
-          street: dto.street,
-          unit: dto.unit,
-          city: dto.city,
-          postcode: dto.postcode,
-          deliveryInstructions: dto.deliveryInstructions,
-          isDefault: dto.isDefault,
-        },
-      });
-    }, { timeout: 15000, maxWait: 10000 });
+        return tx.deliveryAddress.update({
+          where: { id: addressId },
+          data: {
+            label: dto.label,
+            street: dto.street,
+            unit: dto.unit,
+            city: dto.city,
+            postcode: dto.postcode,
+            deliveryInstructions: dto.deliveryInstructions,
+            isDefault: dto.isDefault,
+          },
+        });
+      },
+      { timeout: 15000, maxWait: 10000 },
+    );
 
     return {
       id: updated.id,
@@ -694,25 +712,28 @@ export class CompaniesService {
       }
     }
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.deliveryAddress.delete({
-        where: { id: addressId },
-      });
-
-      // If the deleted address was default, promote another address to default
-      if (address.isDefault) {
-        const remaining = await tx.deliveryAddress.findFirst({
-          where: { companyId },
-          orderBy: { createdAt: 'asc' },
+    await this.prisma.$transaction(
+      async (tx) => {
+        await tx.deliveryAddress.delete({
+          where: { id: addressId },
         });
-        if (remaining) {
-          await tx.deliveryAddress.update({
-            where: { id: remaining.id },
-            data: { isDefault: true },
+
+        // If the deleted address was default, promote another address to default
+        if (address.isDefault) {
+          const remaining = await tx.deliveryAddress.findFirst({
+            where: { companyId },
+            orderBy: { createdAt: 'asc' },
           });
+          if (remaining) {
+            await tx.deliveryAddress.update({
+              where: { id: remaining.id },
+              data: { isDefault: true },
+            });
+          }
         }
-      }
-    }, { timeout: 15000, maxWait: 10000 });
+      },
+      { timeout: 15000, maxWait: 10000 },
+    );
 
     return {
       success: true,

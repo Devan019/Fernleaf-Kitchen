@@ -43,7 +43,7 @@ import {
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('employees')
 export class EmployeesController {
-  constructor(private readonly employeesService: EmployeesService) { }
+  constructor(private readonly employeesService: EmployeesService) {}
 
   // ----------------------------------------------------
   // Employee CRUD
@@ -56,7 +56,10 @@ export class EmployeesController {
   @ApiResponse({ status: 400, description: 'Validation failed.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiResponse({ status: 404, description: 'Referenced Company, Allergen, or DietaryTag not found.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Referenced Company, Allergen, or DietaryTag not found.',
+  })
   @ApiResponse({ status: 409, description: 'Employee email already exists.' })
   create(@Body() dto: CreateEmployeeDto): Promise<EmployeeSummaryResponse> {
     return this.employeesService.create(dto);
@@ -71,13 +74,17 @@ export class EmployeesController {
   @ApiResponse({ status: 200, description: 'Paginated list of employees.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  findAll(@Query() query: EmployeeQueryDto): Promise<PaginatedEmployeesResponse> {
+  findAll(
+    @Query() query: EmployeeQueryDto,
+  ): Promise<PaginatedEmployeesResponse> {
     return this.employeesService.findAll(query);
   }
 
   @Get(':id')
   @RequirePermissions(Permission.EMPLOYEE_READ)
-  @ApiOperation({ summary: 'Get employee details by ID (Admin, Kitchen, Dispatch)' })
+  @ApiOperation({
+    summary: 'Get employee details by ID (Admin, Kitchen, Dispatch)',
+  })
   @ApiParam({ name: 'id', description: 'Employee ID' })
   @ApiResponse({ status: 200, description: 'Employee details.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
@@ -98,7 +105,10 @@ export class EmployeesController {
   @ApiResponse({ status: 400, description: 'Validation failed.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiResponse({ status: 404, description: 'Employee or destination Company not found.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Employee or destination Company not found.',
+  })
   @ApiResponse({ status: 409, description: 'Email already exists.' })
   update(
     @Param('id') id: string,
@@ -111,7 +121,10 @@ export class EmployeesController {
   @RequirePermissions(Permission.EMPLOYEE_DELETE)
   @ApiOperation({ summary: 'Soft-deactivate an employee account (Admin only)' })
   @ApiParam({ name: 'id', description: 'Employee ID' })
-  @ApiResponse({ status: 200, description: 'Employee deactivated successfully.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Employee deactivated successfully.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Employee not found.' })
@@ -130,7 +143,10 @@ export class EmployeesController {
       'Update staff-configured employee business permission flags (Admin only)',
   })
   @ApiParam({ name: 'id', description: 'Employee ID' })
-  @ApiResponse({ status: 200, description: 'Employee permissions updated successfully.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Employee permissions updated successfully.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Employee not found.' })
@@ -152,10 +168,16 @@ export class EmployeesController {
       'Update employee allergen and dietary tag preferences together (Admin only)',
   })
   @ApiParam({ name: 'id', description: 'Employee ID' })
-  @ApiResponse({ status: 200, description: 'Preferences updated successfully.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Preferences updated successfully.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiResponse({ status: 404, description: 'Employee, Allergen, or DietaryTag not found.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Employee, Allergen, or DietaryTag not found.',
+  })
   updatePreferences(
     @Param('id') id: string,
     @Body() dto: UpdateEmployeePreferencesDto,
@@ -165,7 +187,9 @@ export class EmployeesController {
 
   @Put(':id/allergies')
   @RequirePermissions(Permission.EMPLOYEE_UPDATE)
-  @ApiOperation({ summary: 'Replace employee allergen preferences (Admin only)' })
+  @ApiOperation({
+    summary: 'Replace employee allergen preferences (Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'Employee ID' })
   @ApiResponse({ status: 200, description: 'Allergens updated successfully.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
@@ -180,12 +204,20 @@ export class EmployeesController {
 
   @Put(':id/dietary-preferences')
   @RequirePermissions(Permission.EMPLOYEE_UPDATE)
-  @ApiOperation({ summary: 'Replace employee dietary preferences (Admin only)' })
+  @ApiOperation({
+    summary: 'Replace employee dietary preferences (Admin only)',
+  })
   @ApiParam({ name: 'id', description: 'Employee ID' })
-  @ApiResponse({ status: 200, description: 'Dietary preferences updated successfully.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Dietary preferences updated successfully.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiResponse({ status: 404, description: 'Employee or DietaryTag not found.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Employee or DietaryTag not found.',
+  })
   updateDietaryPreferences(
     @Param('id') id: string,
     @Body() dto: UpdateEmployeeDietaryTagsDto,

@@ -18,6 +18,8 @@ export class UpdateCompanyCalendarDto {
   })
   @IsArray()
   @IsEnum(DayOfWeek, { each: true })
-  @ArrayMinSize(1, { message: 'Company calendar must have at least one working day' })
+  @ArrayMinSize(1, {
+    message: 'Company calendar must have at least one working day',
+  })
   workingDays!: DayOfWeek[];
 }

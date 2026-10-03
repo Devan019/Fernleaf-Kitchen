@@ -174,12 +174,17 @@ describe('CompaniesController', () => {
   });
 
   it('checks delivery availability', async () => {
-    const res = await controller.checkDeliveryAvailability('comp-1', '2026-10-05');
+    const res = await controller.checkDeliveryAvailability(
+      'comp-1',
+      '2026-10-05',
+    );
     expect(res.allowed).toBe(true);
   });
 
   it('runs bulk import', async () => {
-    const res = await controller.bulkImport('comp-1', { csvContent: 'name\nTest' });
+    const res = await controller.bulkImport('comp-1', {
+      csvContent: 'name\nTest',
+    });
     expect(res.imported).toBe(1);
   });
 });

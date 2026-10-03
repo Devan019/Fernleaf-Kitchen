@@ -10,4 +10,4 @@ import { CompaniesService } from './company.service.js';
   providers: [CompaniesService],
   exports: [CompaniesService],
 })
-export class CompaniesModule { }
+export class CompaniesModule {}

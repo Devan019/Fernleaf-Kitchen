@@ -65,14 +65,20 @@ describe('Employees Module (e2e)', () => {
     driverCookie = Array(driverLogin.headers['set-cookie']);
 
     // 2. Fetch seeded companies and reference data
-    const google = await prisma.company.findUnique({ where: { name: 'Google' } });
+    const google = await prisma.company.findUnique({
+      where: { name: 'Google' },
+    });
     const tcs = await prisma.company.findUnique({ where: { name: 'TCS' } });
     googleCompanyId = google!.id;
     tcsCompanyId = tcs!.id;
 
     const milk = await prisma.allergen.findFirst({ where: { name: 'Milk' } });
-    const vegan = await prisma.dietaryTag.findFirst({ where: { name: 'Vegan' } });
-    const veg = await prisma.dietaryTag.findFirst({ where: { name: 'Vegetarian' } });
+    const vegan = await prisma.dietaryTag.findFirst({
+      where: { name: 'Vegan' },
+    });
+    const veg = await prisma.dietaryTag.findFirst({
+      where: { name: 'Vegetarian' },
+    });
     milkAllergenId = milk!.id;
     veganDietaryTagId = vegan!.id;
     vegetarianDietaryTagId = veg!.id;

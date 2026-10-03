@@ -61,7 +61,7 @@ export class CompaniesController {
   constructor(
     private readonly companiesService: CompaniesService,
     private readonly employeesService: EmployeesService,
-  ) { }
+  ) {}
 
   // ----------------------------------------------------
   // Company CRUD
@@ -74,7 +74,10 @@ export class CompaniesController {
   @ApiResponse({ status: 400, description: 'Validation failed.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiResponse({ status: 409, description: 'Company name or domain already exists.' })
+  @ApiResponse({
+    status: 409,
+    description: 'Company name or domain already exists.',
+  })
   create(@Body() dto: CreateCompanyDto): Promise<CompanyDetailResponse> {
     return this.companiesService.create(dto);
   }
@@ -88,7 +91,9 @@ export class CompaniesController {
   @ApiResponse({ status: 200, description: 'Paginated list of companies.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  findAll(@Query() query: CompanyQueryDto): Promise<PaginatedCompaniesResponse> {
+  findAll(
+    @Query() query: CompanyQueryDto,
+  ): Promise<PaginatedCompaniesResponse> {
     return this.companiesService.findAll(query);
   }
 
@@ -127,7 +132,10 @@ export class CompaniesController {
   @RequirePermissions(Permission.COMPANY_DELETE)
   @ApiOperation({ summary: 'Soft-deactivate a company (Admin only)' })
   @ApiParam({ name: 'id', description: 'Company ID' })
-  @ApiResponse({ status: 200, description: 'Company deactivated successfully.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Company deactivated successfully.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Company not found.' })
@@ -144,7 +152,10 @@ export class CompaniesController {
   @ApiOperation({ summary: 'Add an email domain to a company (Admin only)' })
   @ApiParam({ name: 'companyId', description: 'Company ID' })
   @ApiResponse({ status: 201, description: 'Domain added successfully.' })
-  @ApiResponse({ status: 400, description: 'Invalid domain format or public provider.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid domain format or public provider.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 409, description: 'Domain already claimed.' })
@@ -157,11 +168,16 @@ export class CompaniesController {
 
   @Delete(':companyId/domains/:domainId')
   @RequirePermissions(Permission.COMPANY_UPDATE)
-  @ApiOperation({ summary: 'Remove an email domain from a company (Admin only)' })
+  @ApiOperation({
+    summary: 'Remove an email domain from a company (Admin only)',
+  })
   @ApiParam({ name: 'companyId', description: 'Company ID' })
   @ApiParam({ name: 'domainId', description: 'Domain ID' })
   @ApiResponse({ status: 200, description: 'Domain removed successfully.' })
-  @ApiResponse({ status: 400, description: 'Cannot delete the last domain of active company.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Cannot delete the last domain of active company.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Domain not found.' })
@@ -178,7 +194,9 @@ export class CompaniesController {
 
   @Get(':companyId/addresses')
   @RequirePermissions(Permission.COMPANY_READ)
-  @ApiOperation({ summary: 'List delivery addresses for a company (Admin, Kitchen, Dispatch)' })
+  @ApiOperation({
+    summary: 'List delivery addresses for a company (Admin, Kitchen, Dispatch)',
+  })
   @ApiParam({ name: 'companyId', description: 'Company ID' })
   @ApiResponse({ status: 200, description: 'List of delivery addresses.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
@@ -192,7 +210,9 @@ export class CompaniesController {
 
   @Post(':companyId/addresses')
   @RequirePermissions(Permission.COMPANY_UPDATE)
-  @ApiOperation({ summary: 'Add a delivery address for a company (Admin only)' })
+  @ApiOperation({
+    summary: 'Add a delivery address for a company (Admin only)',
+  })
   @ApiParam({ name: 'companyId', description: 'Company ID' })
   @ApiResponse({ status: 201, description: 'Address created successfully.' })
   @ApiResponse({ status: 400, description: 'Validation failed.' })
@@ -230,7 +250,10 @@ export class CompaniesController {
   @ApiParam({ name: 'companyId', description: 'Company ID' })
   @ApiParam({ name: 'addressId', description: 'Address ID' })
   @ApiResponse({ status: 200, description: 'Address deleted successfully.' })
-  @ApiResponse({ status: 400, description: 'Cannot delete the last address of active company.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Cannot delete the last address of active company.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Address not found.' })
@@ -247,9 +270,14 @@ export class CompaniesController {
 
   @Patch(':companyId/billing-contact')
   @RequirePermissions(Permission.COMPANY_UPDATE)
-  @ApiOperation({ summary: 'Update company billing contact details (Admin only)' })
+  @ApiOperation({
+    summary: 'Update company billing contact details (Admin only)',
+  })
   @ApiParam({ name: 'companyId', description: 'Company ID' })
-  @ApiResponse({ status: 200, description: 'Billing contact updated successfully.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Billing contact updated successfully.',
+  })
   @ApiResponse({ status: 400, description: 'Validation failed.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
@@ -267,10 +295,19 @@ export class CompaniesController {
 
   @Patch(':companyId/owner')
   @RequirePermissions(Permission.COMPANY_UPDATE)
-  @ApiOperation({ summary: 'Set or change company owner (Admin only - must be company employee)' })
+  @ApiOperation({
+    summary:
+      'Set or change company owner (Admin only - must be company employee)',
+  })
   @ApiParam({ name: 'companyId', description: 'Company ID' })
-  @ApiResponse({ status: 200, description: 'Company owner updated successfully.' })
-  @ApiResponse({ status: 400, description: 'Owner must be an employee of the same company.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Company owner updated successfully.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Owner must be an employee of the same company.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Company or Employee not found.' })
@@ -287,10 +324,15 @@ export class CompaniesController {
 
   @Patch(':companyId/calendar')
   @RequirePermissions(Permission.COMPANY_UPDATE)
-  @ApiOperation({ summary: 'Update company delivery calendar working days (Admin only)' })
+  @ApiOperation({
+    summary: 'Update company delivery calendar working days (Admin only)',
+  })
   @ApiParam({ name: 'companyId', description: 'Company ID' })
   @ApiResponse({ status: 200, description: 'Calendar updated successfully.' })
-  @ApiResponse({ status: 400, description: 'Must specify at least one working day.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Must specify at least one working day.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Company not found.' })
@@ -328,7 +370,10 @@ export class CompaniesController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Company not found.' })
-  @ApiResponse({ status: 409, description: 'Holiday on this date already exists.' })
+  @ApiResponse({
+    status: 409,
+    description: 'Holiday on this date already exists.',
+  })
   addHoliday(
     @Param('companyId') companyId: string,
     @Body() dto: CreateCompanyHolidayDto,
@@ -346,7 +391,10 @@ export class CompaniesController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Holiday not found.' })
-  @ApiResponse({ status: 409, description: 'Holiday on updated date already exists.' })
+  @ApiResponse({
+    status: 409,
+    description: 'Holiday on updated date already exists.',
+  })
   updateHoliday(
     @Param('companyId') companyId: string,
     @Param('holidayId') holidayId: string,
@@ -379,7 +427,10 @@ export class CompaniesController {
   @RequirePermissions(Permission.COMPANY_UPDATE)
   @ApiOperation({ summary: 'Update company delivery defaults (Admin only)' })
   @ApiParam({ name: 'companyId', description: 'Company ID' })
-  @ApiResponse({ status: 200, description: 'Delivery defaults updated successfully.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Delivery defaults updated successfully.',
+  })
   @ApiResponse({ status: 400, description: 'Validation failed.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
@@ -399,7 +450,10 @@ export class CompaniesController {
   @RequirePermissions(Permission.COMPANY_UPDATE)
   @ApiOperation({ summary: 'Assign or remove company price tier (Admin only)' })
   @ApiParam({ name: 'companyId', description: 'Company ID' })
-  @ApiResponse({ status: 200, description: 'Price tier assigned successfully.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Price tier assigned successfully.',
+  })
   @ApiResponse({ status: 400, description: 'Inactive price tier.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
@@ -425,7 +479,10 @@ export class CompaniesController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Company or Category not found.' })
-  @ApiResponse({ status: 409, description: 'Category is already hidden for this company.' })
+  @ApiResponse({
+    status: 409,
+    description: 'Category is already hidden for this company.',
+  })
   hideCategory(
     @Param('companyId') companyId: string,
     @Param('categoryId') categoryId: string,
@@ -441,7 +498,10 @@ export class CompaniesController {
   @ApiResponse({ status: 200, description: 'Category unhidden successfully.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiResponse({ status: 404, description: 'Category is not hidden for this company.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Category is not hidden for this company.',
+  })
   unhideCategory(
     @Param('companyId') companyId: string,
     @Param('categoryId') categoryId: string,
@@ -459,7 +519,10 @@ export class CompaniesController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Company or Dish not found.' })
-  @ApiResponse({ status: 409, description: 'Dish is already hidden for this company.' })
+  @ApiResponse({
+    status: 409,
+    description: 'Dish is already hidden for this company.',
+  })
   hideDish(
     @Param('companyId') companyId: string,
     @Param('dishId') dishId: string,
@@ -475,7 +538,10 @@ export class CompaniesController {
   @ApiResponse({ status: 200, description: 'Dish unhidden successfully.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiResponse({ status: 404, description: 'Dish is not hidden for this company.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Dish is not hidden for this company.',
+  })
   unhideDish(
     @Param('companyId') companyId: string,
     @Param('dishId') dishId: string,
@@ -524,7 +590,10 @@ export class CompaniesController {
   })
   @ApiParam({ name: 'companyId', description: 'Company ID' })
   @ApiResponse({ status: 200, description: 'Bulk import results.' })
-  @ApiResponse({ status: 400, description: 'Invalid CSV header or inactive company.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid CSV header or inactive company.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Company not found.' })

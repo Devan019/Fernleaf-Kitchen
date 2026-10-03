@@ -136,7 +136,8 @@ export class UpdateCompanyDto {
   priceTierId?: string | null;
 
   @ApiPropertyOptional({
-    description: 'Active status of the company for soft activation/deactivation',
+    description:
+      'Active status of the company for soft activation/deactivation',
     example: true,
   })
   @IsOptional()

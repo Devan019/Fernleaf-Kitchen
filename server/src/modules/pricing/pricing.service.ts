@@ -92,51 +92,51 @@ export class PricingService {
       return await this.prisma.$transaction(
         async (tx) => {
           // If this tier is marked as default, unset any existing default
-        if (dto.isDefault) {
-          await tx.priceTier.updateMany({
-            where: { isDefault: true },
-            data: { isDefault: false },
-          });
-        }
+          if (dto.isDefault) {
+            await tx.priceTier.updateMany({
+              where: { isDefault: true },
+              data: { isDefault: false },
+            });
+          }
 
-        const tier = await tx.priceTier.create({
-          data: {
-            name: dto.name,
-            description: dto.description,
-            derivationType: dto.derivationType,
-            baseTierId:
-              dto.derivationType === PriceDerivationType.TIER_PERCENTAGE
-                ? dto.baseTierId
-                : null,
-            multiplier:
-              dto.derivationType === PriceDerivationType.COST_MULTIPLIER &&
-              dto.multiplier !== undefined
-                ? new Prisma.Decimal(dto.multiplier)
-                : null,
-            percentage:
-              dto.derivationType === PriceDerivationType.TIER_PERCENTAGE &&
-              dto.percentage !== undefined
-                ? new Prisma.Decimal(dto.percentage)
-                : null,
-            isDefault: dto.isDefault ?? false,
-            isActive: dto.isActive ?? true,
-          },
-          include: {
-            baseTier: { select: { name: true } },
-            _count: {
-              select: {
-                dishPrices: true,
-                optionPrices: true,
-                companies: true,
+          const tier = await tx.priceTier.create({
+            data: {
+              name: dto.name,
+              description: dto.description,
+              derivationType: dto.derivationType,
+              baseTierId:
+                dto.derivationType === PriceDerivationType.TIER_PERCENTAGE
+                  ? dto.baseTierId
+                  : null,
+              multiplier:
+                dto.derivationType === PriceDerivationType.COST_MULTIPLIER &&
+                dto.multiplier !== undefined
+                  ? new Prisma.Decimal(dto.multiplier)
+                  : null,
+              percentage:
+                dto.derivationType === PriceDerivationType.TIER_PERCENTAGE &&
+                dto.percentage !== undefined
+                  ? new Prisma.Decimal(dto.percentage)
+                  : null,
+              isDefault: dto.isDefault ?? false,
+              isActive: dto.isActive ?? true,
+            },
+            include: {
+              baseTier: { select: { name: true } },
+              _count: {
+                select: {
+                  dishPrices: true,
+                  optionPrices: true,
+                  companies: true,
+                },
               },
             },
-          },
-        });
+          });
 
-        return this.mapTierToResponse(tier);
-      },
-      { timeout: 15000, maxWait: 10000 },
-    );
+          return this.mapTierToResponse(tier);
+        },
+        { timeout: 15000, maxWait: 10000 },
+      );
     } catch (error) {
       if (isPrismaError(error, 'P2002')) {
         throw new ConflictException(

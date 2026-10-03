@@ -9,4 +9,4 @@ import { EmployeesService } from './employee.service.js';
   providers: [EmployeesService],
   exports: [EmployeesService],
 })
-export class EmployeesModule { }
+export class EmployeesModule {}

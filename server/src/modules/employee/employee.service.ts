@@ -68,7 +68,9 @@ export class EmployeesService {
         where: { id: { in: dto.allergenIds } },
       });
       if (allergenCount !== dto.allergenIds.length) {
-        throw new NotFoundException('One or more referenced allergens do not exist');
+        throw new NotFoundException(
+          'One or more referenced allergens do not exist',
+        );
       }
     }
 
@@ -78,7 +80,9 @@ export class EmployeesService {
         where: { id: { in: dto.dietaryTagIds } },
       });
       if (tagCount !== dto.dietaryTagIds.length) {
-        throw new NotFoundException('One or more referenced dietary tags do not exist');
+        throw new NotFoundException(
+          'One or more referenced dietary tags do not exist',
+        );
       }
     }
 
@@ -282,7 +286,9 @@ export class EmployeesService {
           where: { id: { in: dto.allergenIds } },
         });
         if (allergenCount !== dto.allergenIds.length) {
-          throw new NotFoundException('One or more referenced allergens do not exist');
+          throw new NotFoundException(
+            'One or more referenced allergens do not exist',
+          );
         }
       }
     }
@@ -294,39 +300,44 @@ export class EmployeesService {
           where: { id: { in: dto.dietaryTagIds } },
         });
         if (tagCount !== dto.dietaryTagIds.length) {
-          throw new NotFoundException('One or more referenced dietary tags do not exist');
+          throw new NotFoundException(
+            'One or more referenced dietary tags do not exist',
+          );
         }
       }
     }
 
     // 5. If moving company and this employee is owner of the old company, unset ownership
-    await this.prisma.$transaction(async (tx) => {
-      if (isMovingCompany && existing.ownedCompanies.length > 0) {
-        await tx.company.updateMany({
-          where: { id: existing.companyId, ownerId: id },
-          data: { ownerId: null },
-        });
-      }
+    await this.prisma.$transaction(
+      async (tx) => {
+        if (isMovingCompany && existing.ownedCompanies.length > 0) {
+          await tx.company.updateMany({
+            where: { id: existing.companyId, ownerId: id },
+            data: { ownerId: null },
+          });
+        }
 
-      await tx.employee.update({
-        where: { id },
-        data: {
-          name: dto.name?.trim(),
-          email: normalizedEmail,
-          companyId: dto.companyId,
-          canChooseDeliveryAddress: dto.canChooseDeliveryAddress,
-          canChangeDeliveryTime: dto.canChangeDeliveryTime,
-          canChangePackaging: dto.canChangePackaging,
-          isActive: dto.isActive,
-          allergens: dto.allergenIds
-            ? { set: dto.allergenIds.map((aid) => ({ id: aid })) }
-            : undefined,
-          dietaryTags: dto.dietaryTagIds
-            ? { set: dto.dietaryTagIds.map((tid) => ({ id: tid })) }
-            : undefined,
-        },
-      });
-    }, { timeout: 15000, maxWait: 10000 });
+        await tx.employee.update({
+          where: { id },
+          data: {
+            name: dto.name?.trim(),
+            email: normalizedEmail,
+            companyId: dto.companyId,
+            canChooseDeliveryAddress: dto.canChooseDeliveryAddress,
+            canChangeDeliveryTime: dto.canChangeDeliveryTime,
+            canChangePackaging: dto.canChangePackaging,
+            isActive: dto.isActive,
+            allergens: dto.allergenIds
+              ? { set: dto.allergenIds.map((aid) => ({ id: aid })) }
+              : undefined,
+            dietaryTags: dto.dietaryTagIds
+              ? { set: dto.dietaryTagIds.map((tid) => ({ id: tid })) }
+              : undefined,
+          },
+        });
+      },
+      { timeout: 15000, maxWait: 10000 },
+    );
 
     return this.findById(id);
   }
@@ -403,7 +414,9 @@ export class EmployeesService {
         where: { id: { in: dto.allergenIds } },
       });
       if (allergenCount !== dto.allergenIds.length) {
-        throw new NotFoundException('One or more referenced allergens do not exist');
+        throw new NotFoundException(
+          'One or more referenced allergens do not exist',
+        );
       }
     }
 
@@ -412,7 +425,9 @@ export class EmployeesService {
         where: { id: { in: dto.dietaryTagIds } },
       });
       if (tagCount !== dto.dietaryTagIds.length) {
-        throw new NotFoundException('One or more referenced dietary tags do not exist');
+        throw new NotFoundException(
+          'One or more referenced dietary tags do not exist',
+        );
       }
     }
 
@@ -450,7 +465,9 @@ export class EmployeesService {
         where: { id: { in: dto.allergenIds } },
       });
       if (count !== dto.allergenIds.length) {
-        throw new NotFoundException('One or more referenced allergens do not exist');
+        throw new NotFoundException(
+          'One or more referenced allergens do not exist',
+        );
       }
     }
 
@@ -483,7 +500,9 @@ export class EmployeesService {
         where: { id: { in: dto.dietaryTagIds } },
       });
       if (count !== dto.dietaryTagIds.length) {
-        throw new NotFoundException('One or more referenced dietary tags do not exist');
+        throw new NotFoundException(
+          'One or more referenced dietary tags do not exist',
+        );
       }
     }
 
@@ -516,7 +535,9 @@ export class EmployeesService {
       throw new NotFoundException(`Company with ID '${companyId}' not found`);
     }
     if (!company.isActive) {
-      throw new BadRequestException('Cannot import employees to an inactive company');
+      throw new BadRequestException(
+        'Cannot import employees to an inactive company',
+      );
     }
 
     if (!csvContent || csvContent.trim().length === 0) {

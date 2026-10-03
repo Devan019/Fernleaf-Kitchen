@@ -54,7 +54,11 @@ describe('EmployeesController', () => {
           name: dto.name ?? 'Rahul Sharma',
           email: 'rahul@google.com',
           companyId: dto.companyId ?? 'comp-1',
-          company: { id: dto.companyId ?? 'comp-1', name: 'Google', isActive: true },
+          company: {
+            id: dto.companyId ?? 'comp-1',
+            name: 'Google',
+            isActive: true,
+          },
           canChooseDeliveryAddress: true,
           canChangeDeliveryTime: false,
           canChangePackaging: true,
@@ -103,9 +107,7 @@ describe('EmployeesController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EmployeesController],
-      providers: [
-        { provide: EmployeesService, useValue: employeesService },
-      ],
+      providers: [{ provide: EmployeesService, useValue: employeesService }],
     }).compile();
 
     controller = module.get<EmployeesController>(EmployeesController);

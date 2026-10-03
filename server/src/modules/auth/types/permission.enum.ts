@@ -55,4 +55,12 @@ export enum Permission {
   EMPLOYEE_CREATE = 'employee:create',
   EMPLOYEE_UPDATE = 'employee:update',
   EMPLOYEE_DELETE = 'employee:delete',
+
+  // Order operations
+  ORDER_READ = 'order:read',
+  ORDER_CREATE = 'order:create',
+  ORDER_UPDATE = 'order:update',
+  ORDER_CANCEL = 'order:cancel',
+  ORDER_OVERRIDE = 'order:override',
+  ORDER_CUTOFF_PROCESS = 'order:cutoff_process',
 }

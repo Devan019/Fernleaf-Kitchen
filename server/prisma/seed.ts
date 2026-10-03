@@ -1,8 +1,9 @@
 import 'dotenv/config';
 import { PrismaClient, Prisma } from '../src/generated/prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { DishTemperature, PriceDerivationType, UserRole, DayOfWeek } from '../src/generated/prisma/enums.js';
+import { DishTemperature, PriceDerivationType, UserRole, DayOfWeek, OrderStatus } from '../src/generated/prisma/enums.js';
 import { hashPassword } from '../src/common/utils/index.js';
+import { randomUUID } from 'node:crypto';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL as string,
@@ -667,7 +668,7 @@ async function main() {
             street: addr.street,
             city: addr.city,
             postcode: addr.postcode,
-            deliveryInstructions: addr.deliveryInstructions,
+            deliveryInstructions: 'deliveryInstructions' in addr ? (addr as { deliveryInstructions?: string }).deliveryInstructions ?? null : null,
             isDefault: addr.isDefault,
           },
         });
@@ -1256,6 +1257,437 @@ async function main() {
     data: { priceTierId: standardTier.id },
   });
   console.log(`✓ Assigned Companies to Price Tiers: Acme (Default), Globex & Google (Enterprise), Initech & TCS (Partner), Microsoft (Standard)`);
+
+  // ====================================================
+  // 6. Kitchen Settings & Holidays
+  // ====================================================
+  console.log('\nSeeding Kitchen Settings & Holidays...');
+  const defaultSettings = [
+    { key: 'CUTOFF_TIME', value: '16:00', description: 'Kitchen cut-off time in HH:mm' },
+    { key: 'CUTOFF_WORKING_DAYS', value: '2', description: 'Number of kitchen working days prior to delivery date' },
+    { key: 'KITCHEN_WORKING_DAYS', value: 'MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY', description: 'Kitchen operating working days' },
+    { key: 'KITCHEN_TIMEZONE', value: 'UTC', description: 'Kitchen operational timezone' },
+  ];
+
+  for (const s of defaultSettings) {
+    await prisma.kitchenSetting.upsert({
+      where: { key: s.key },
+      update: { value: s.value, updatedAt: new Date() },
+      create: {
+        id: randomUUID(),
+        key: s.key,
+        value: s.value,
+        description: s.description,
+        updatedAt: new Date(),
+      },
+    });
+  }
+  console.log(`✓ Seeded ${defaultSettings.length} Kitchen Settings`);
+
+  await prisma.kitchenHoliday.upsert({
+    where: { date: new Date('2026-12-25T00:00:00.000Z') },
+    update: { name: 'Christmas Day', updatedAt: new Date() },
+    create: {
+      id: randomUUID(),
+      date: new Date('2026-12-25T00:00:00.000Z'),
+      name: 'Christmas Day',
+      description: 'Kitchen closed for Christmas',
+      updatedAt: new Date(),
+    },
+  });
+  console.log('✓ Seeded Kitchen Holiday: Christmas Day');
+
+  // ====================================================
+  // 7. Realistic Seed Orders Across Companies & Employees
+  // ====================================================
+  console.log('\nSeeding Realistic Orders...');
+  const adminUser = await prisma.user.findUnique({ where: { email: 'admin@test.com' } });
+  const googleComp = await prisma.company.findUnique({
+    where: { name: 'Google' },
+    include: { deliveryAddresses: true, employees: true },
+  });
+  const tcsComp = await prisma.company.findUnique({
+    where: { name: 'TCS' },
+    include: { deliveryAddresses: true, employees: true },
+  });
+  const msftComp = await prisma.company.findUnique({
+    where: { name: 'Microsoft' },
+    include: { deliveryAddresses: true, employees: true },
+  });
+
+  const pnrDishItem = await prisma.dish.findUnique({
+    where: { sku: 'DISH-PNR-001' },
+    include: {
+      optionGroups: {
+        include: {
+          optionGroupOptions: { include: { option: true } },
+          optionGroupPortions: { include: { portionSize: true } },
+        },
+      },
+    },
+  });
+
+  const chkDishItem = await prisma.dish.findUnique({
+    where: { sku: 'DISH-CHK-001' },
+    include: {
+      optionGroups: {
+        include: {
+          optionGroupOptions: { include: { option: true } },
+          optionGroupPortions: { include: { portionSize: true } },
+        },
+      },
+    },
+  });
+
+  const brwDishItem = await prisma.dish.findUnique({
+    where: { sku: 'DISH-BRW-001' },
+  });
+
+  if (googleComp && tcsComp && msftComp && pnrDishItem && chkDishItem && brwDishItem) {
+    const pnrProteinGroup = pnrDishItem.optionGroups.find((g) => g.name === 'Choose Protein');
+    const pnrRiceGroup = pnrDishItem.optionGroups.find((g) => g.name === 'Choose Rice Base');
+    const pnrPaneerOpt = pnrProteinGroup?.optionGroupOptions.find((o) => o.option.name === 'Paneer')?.option;
+    const pnrBrownRiceOpt = pnrRiceGroup?.optionGroupOptions.find((o) => o.option.name === 'Brown Rice')?.option;
+    const pnrJeeraRiceOpt = pnrRiceGroup?.optionGroupOptions.find((o) => o.option.name === 'Jeera Rice')?.option;
+    const regularPortion = pnrProteinGroup?.optionGroupPortions.find((p) => p.portionSize.name === 'Regular')?.portionSize;
+    const largePortion = pnrProteinGroup?.optionGroupPortions.find((p) => p.portionSize.name === 'Large')?.portionSize;
+
+    const ordersToSeed = [
+      {
+        orderNumber: 'SEED-ORD-001',
+        company: googleComp,
+        employee: googleComp.employees[0], // Rahul Sharma
+        deliveryDate: '2026-10-07',
+        deliveryTime: '12:30',
+        status: OrderStatus.DRAFT,
+        packagingType: 'ECO_BOX',
+        subtotal: '122.50',
+        total: '122.50',
+        placedAt: null,
+        confirmedAt: null,
+        deliveredAt: null,
+        cancelledAt: null,
+        rejectedAt: null,
+        note: 'Order saved as draft by staff',
+        lines: [
+          {
+            dish: pnrDishItem,
+            unitPrice: '12.25',
+            quantity: 10,
+            lineTotal: '122.50',
+            combinations: [
+              {
+                quantity: 6,
+                unitPrice: '12.25',
+                combinationTotal: '73.50',
+                options: [
+                  { group: pnrProteinGroup, option: pnrPaneerOpt, portion: regularPortion, unitPrice: '0.00', extraCharge: '0.00', finalPrice: '0.00' },
+                  { group: pnrRiceGroup, option: pnrBrownRiceOpt, portion: null, unitPrice: '0.00', extraCharge: '0.00', finalPrice: '0.00' },
+                ],
+              },
+              {
+                quantity: 4,
+                unitPrice: '12.25',
+                combinationTotal: '49.00',
+                options: [
+                  { group: pnrProteinGroup, option: pnrPaneerOpt, portion: regularPortion, unitPrice: '0.00', extraCharge: '0.00', finalPrice: '0.00' },
+                  { group: pnrRiceGroup, option: pnrJeeraRiceOpt, portion: null, unitPrice: '0.00', extraCharge: '0.00', finalPrice: '0.00' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        orderNumber: 'SEED-ORD-002',
+        company: googleComp,
+        employee: googleComp.employees[1], // Priya Patel
+        deliveryDate: '2026-10-08',
+        deliveryTime: '13:00',
+        status: OrderStatus.PLACED,
+        packagingType: 'STANDARD',
+        subtotal: '107.50',
+        total: '107.50',
+        placedAt: new Date('2026-10-03T10:00:00.000Z'),
+        confirmedAt: null,
+        deliveredAt: null,
+        cancelledAt: null,
+        rejectedAt: null,
+        note: 'Order placed by staff',
+        lines: [
+          {
+            dish: chkDishItem,
+            unitPrice: '14.50',
+            quantity: 5,
+            lineTotal: '72.50',
+            combinations: [
+              {
+                quantity: 5,
+                unitPrice: '14.50',
+                combinationTotal: '72.50',
+                options: [],
+              },
+            ],
+          },
+          {
+            dish: brwDishItem,
+            unitPrice: '7.00',
+            quantity: 5,
+            lineTotal: '35.00',
+            combinations: [
+              {
+                quantity: 5,
+                unitPrice: '7.00',
+                combinationTotal: '35.00',
+                options: [],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        orderNumber: 'SEED-ORD-003',
+        company: tcsComp,
+        employee: tcsComp.employees[0], // Vikram Malhotra
+        deliveryDate: '2026-10-05',
+        deliveryTime: '12:00',
+        status: OrderStatus.CONFIRMED,
+        packagingType: 'ECO_BOX',
+        subtotal: '150.00',
+        total: '150.00',
+        placedAt: new Date('2026-10-01T11:00:00.000Z'),
+        confirmedAt: new Date('2026-10-01T16:00:00.000Z'),
+        deliveredAt: null,
+        cancelledAt: null,
+        rejectedAt: null,
+        note: 'Cut-off passed: order confirmed',
+        lines: [
+          {
+            dish: pnrDishItem,
+            unitPrice: '10.00',
+            quantity: 15,
+            lineTotal: '150.00',
+            combinations: [
+              {
+                quantity: 15,
+                unitPrice: '10.00',
+                combinationTotal: '150.00',
+                options: [],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        orderNumber: 'SEED-ORD-004',
+        company: msftComp,
+        employee: msftComp.employees[0], // Suresh Raina
+        deliveryDate: '2026-09-30',
+        deliveryTime: '12:30',
+        status: OrderStatus.DELIVERED,
+        packagingType: 'STANDARD',
+        subtotal: '92.00',
+        total: '92.00',
+        placedAt: new Date('2026-09-26T09:00:00.000Z'),
+        confirmedAt: new Date('2026-09-26T16:00:00.000Z'),
+        deliveredAt: new Date('2026-09-30T12:45:00.000Z'),
+        cancelledAt: null,
+        rejectedAt: null,
+        note: 'Order successfully delivered to customer',
+        lines: [
+          {
+            dish: chkDishItem,
+            unitPrice: '11.50',
+            quantity: 8,
+            lineTotal: '92.00',
+            combinations: [
+              {
+                quantity: 8,
+                unitPrice: '11.50',
+                combinationTotal: '92.00',
+                options: [],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        orderNumber: 'SEED-ORD-005',
+        company: googleComp,
+        employee: googleComp.employees[2], // Amit Kumar
+        deliveryDate: '2026-10-01',
+        deliveryTime: '12:30',
+        status: OrderStatus.CANCELLED,
+        packagingType: 'STANDARD',
+        subtotal: '73.50',
+        total: '73.50',
+        placedAt: new Date('2026-09-28T09:00:00.000Z'),
+        confirmedAt: null,
+        deliveredAt: null,
+        cancelledAt: new Date('2026-09-29T10:00:00.000Z'),
+        rejectedAt: null,
+        note: 'Cancelled by employee request',
+        lines: [
+          {
+            dish: pnrDishItem,
+            unitPrice: '12.25',
+            quantity: 6,
+            lineTotal: '73.50',
+            combinations: [
+              {
+                quantity: 6,
+                unitPrice: '12.25',
+                combinationTotal: '73.50',
+                options: [],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        orderNumber: 'SEED-ORD-006',
+        company: tcsComp,
+        employee: tcsComp.employees[1], // Ananya Sen
+        deliveryDate: '2026-09-29',
+        deliveryTime: '12:30',
+        status: OrderStatus.REJECTED,
+        packagingType: 'ECO_BOX',
+        subtotal: '20.00',
+        total: '20.00',
+        placedAt: new Date('2026-09-25T14:00:00.000Z'),
+        confirmedAt: null,
+        deliveredAt: null,
+        cancelledAt: null,
+        rejectedAt: new Date('2026-09-26T16:00:00.000Z'),
+        note: 'Rejected due to kitchen capacity constraints',
+        lines: [
+          {
+            dish: brwDishItem,
+            unitPrice: '5.00',
+            quantity: 4,
+            lineTotal: '20.00',
+            combinations: [
+              {
+                quantity: 4,
+                unitPrice: '5.00',
+                combinationTotal: '20.00',
+                options: [],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    for (const ord of ordersToSeed) {
+      const existing = await prisma.order.findUnique({
+        where: { orderNumber: ord.orderNumber },
+      });
+
+      if (!existing) {
+        const address = ord.company.deliveryAddresses[0];
+        const orderId = randomUUID();
+        const now = new Date();
+
+        await prisma.order.create({
+          data: {
+            id: orderId,
+            orderNumber: ord.orderNumber,
+            employeeId: ord.employee.id,
+            companyId: ord.company.id,
+            deliveryDate: new Date(`${ord.deliveryDate}T00:00:00.000Z`),
+            deliveryTime: ord.deliveryTime,
+            status: ord.status,
+            packagingType: ord.packagingType,
+            deliveryAddressId: address ? address.id : null,
+            deliveryAddressLabel: address ? address.label : 'HQ',
+            deliveryStreet: address ? address.street : 'Main St',
+            deliveryUnit: address ? address.unit : null,
+            deliveryCity: address ? address.city : 'London',
+            deliveryPostcode: address ? address.postcode : 'EC1A 1BB',
+            deliveryInstructions: address ? address.deliveryInstructions : null,
+            subtotal: new Prisma.Decimal(ord.subtotal),
+            total: new Prisma.Decimal(ord.total),
+            createdByUserId: adminUser ? adminUser.id : null,
+            placedAt: ord.placedAt,
+            confirmedAt: ord.confirmedAt,
+            deliveredAt: ord.deliveredAt,
+            cancelledAt: ord.cancelledAt,
+            rejectedAt: ord.rejectedAt,
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        for (const line of ord.lines) {
+          const lineId = randomUUID();
+          await prisma.orderLine.create({
+            data: {
+              id: lineId,
+              orderId,
+              dishId: line.dish.id,
+              dishNameSnapshot: line.dish.name,
+              dishSkuSnapshot: line.dish.sku,
+              unitPrice: new Prisma.Decimal(line.unitPrice),
+              quantity: line.quantity,
+              lineTotal: new Prisma.Decimal(line.lineTotal),
+              createdAt: now,
+              updatedAt: now,
+            },
+          });
+
+          for (const comb of line.combinations) {
+            const combId = randomUUID();
+            await prisma.orderLineCombination.create({
+              data: {
+                id: combId,
+                orderLineId: lineId,
+                quantity: comb.quantity,
+                unitPrice: new Prisma.Decimal(comb.unitPrice),
+                combinationTotal: new Prisma.Decimal(comb.combinationTotal),
+                createdAt: now,
+                updatedAt: now,
+              },
+            });
+
+            for (const opt of comb.options) {
+              if (opt.option) {
+                await prisma.orderCombinationOption.create({
+                  data: {
+                    id: randomUUID(),
+                    combinationId: combId,
+                    optionGroupId: opt.group?.id ?? null,
+                    optionGroupNameSnapshot: opt.group?.name ?? null,
+                    optionId: opt.option.id,
+                    optionNameSnapshot: opt.option.name,
+                    unitPrice: new Prisma.Decimal(opt.unitPrice),
+                    portionSizeId: opt.portion?.id ?? null,
+                    portionSizeNameSnapshot: opt.portion?.name ?? null,
+                    portionExtraCharge: new Prisma.Decimal(opt.extraCharge),
+                    finalPrice: new Prisma.Decimal(opt.finalPrice),
+                    createdAt: now,
+                  },
+                });
+              }
+            }
+          }
+        }
+
+        await prisma.orderStatusHistory.create({
+          data: {
+            id: randomUUID(),
+            orderId,
+            fromStatus: null,
+            toStatus: ord.status,
+            changedByUserId: adminUser ? adminUser.id : null,
+            note: ord.note,
+            createdAt: now,
+          },
+        });
+      }
+    }
+    console.log(`✓ Seeded ${ordersToSeed.length} Realistic Orders across statuses (DRAFT, PLACED, CONFIRMED, DELIVERED, CANCELLED, REJECTED)`);
+  }
 
   console.log('\nDatabase seed finished successfully and idempotently.');
 }

@@ -11,6 +11,7 @@ import { MenuModule } from './modules/menu/menu.module.js';
 import { PricingModule } from './modules/pricing/pricing.module.js';
 import { CompaniesModule } from './modules/company/company.module.js';
 import { EmployeesModule } from './modules/employee/employee.module.js';
+import { OrderModule } from './modules/order/order.module.js';
 
 @Module({
   imports: [
@@ -26,8 +27,9 @@ import { EmployeesModule } from './modules/employee/employee.module.js';
     PricingModule,
     CompaniesModule,
     EmployeesModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

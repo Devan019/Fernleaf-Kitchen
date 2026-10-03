@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -12,52 +7,41 @@ datasource db {
   provider = "postgresql"
 }
 
-enum UserRole {
-  ADMIN
-  KITCHEN
-  DISPATCH
-  DRIVER
-}
-
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  role         UserRole
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  defaultDriverCompanies Company[] @relation("CompanyDefaultDriver")
-}
-
-enum DishTemperature {
-  HOT
-  COLD
+  id                     String               @id @default(cuid())
+  name                   String
+  email                  String               @unique
+  passwordHash           String
+  role                   UserRole
+  isActive               Boolean              @default(true)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  defaultDriverCompanies Company[]            @relation("CompanyDefaultDriver")
+  Order                  Order[]
+  OrderStatusHistory     OrderStatusHistory[]
 }
 
 model Dish {
-  id                   String          @id @default(cuid())
+  id                   String              @id @default(cuid())
   name                 String
   description          String?
   imageUrl             String?
-  sku                  String          @unique
+  sku                  String              @unique
   temperature          DishTemperature
-  costPrice            Decimal         @db.Decimal(10, 2)
+  costPrice            Decimal             @db.Decimal(10, 2)
   minimumOrderQuantity Int?
   kitchenStationId     String?
-  kitchenStation       KitchenStation? @relation(fields: [kitchenStationId], references: [id], onDelete: SetNull)
-  isActive             Boolean         @default(true)
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-
-  allergens           Allergen[]
-  dietaryTags         DietaryTag[]
-  optionGroups        OptionGroup[]
-  categoryDishes      CategoryDish[]
-  companyHiddenDishes CompanyHiddenDish[]
-  dishPrices          DishPrice[]
+  isActive             Boolean             @default(true)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  categoryDishes       CategoryDish[]
+  companyHiddenDishes  CompanyHiddenDish[]
+  kitchenStation       KitchenStation?     @relation(fields: [kitchenStationId], references: [id])
+  dishPrices           DishPrice[]
+  optionGroups         OptionGroup[]
+  OrderLine            OrderLine[]
+  allergens            Allergen[]          @relation("AllergenToDish")
+  dietaryTags          DietaryTag[]        @relation("DietaryTagToDish")
 
   @@index([name])
   @@index([sku])
@@ -66,34 +50,33 @@ model Dish {
 }
 
 model Option {
-  id        String   @id @default(cuid())
-  name      String
-  costPrice Decimal  @db.Decimal(10, 2)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  allergens          Allergen[]
-  dietaryTags        DietaryTag[]
-  optionGroupOptions OptionGroupOption[]
-  optionPortions     OptionPortion[]
-  optionPrices       OptionPrice[]
+  id                     String                   @id @default(cuid())
+  name                   String
+  costPrice              Decimal                  @db.Decimal(10, 2)
+  isActive               Boolean                  @default(true)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  optionGroupOptions     OptionGroupOption[]
+  optionPortions         OptionPortion[]
+  optionPrices           OptionPrice[]
+  OrderCombinationOption OrderCombinationOption[]
+  allergens              Allergen[]               @relation("AllergenToOption")
+  dietaryTags            DietaryTag[]             @relation("DietaryTagToOption")
 
   @@index([name])
   @@index([isActive])
 }
 
 model OptionGroup {
-  id           String   @id @default(cuid())
-  dishId       String
-  dish         Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
-  name         String
-  isRequired   Boolean  @default(false)
-  displayOrder Int
-  usesPortions Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
+  id                  String               @id @default(cuid())
+  dishId              String
+  name                String
+  isRequired          Boolean              @default(false)
+  displayOrder        Int
+  usesPortions        Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  dish                Dish                 @relation(fields: [dishId], references: [id], onDelete: Cascade)
   optionGroupOptions  OptionGroupOption[]
   optionGroupPortions OptionGroupPortion[]
 
@@ -104,11 +87,11 @@ model OptionGroup {
 model OptionGroupOption {
   id            String      @id @default(cuid())
   optionGroupId String
-  optionGroup   OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
   optionId      String
-  option        Option      @relation(fields: [optionId], references: [id], onDelete: Restrict)
   displayOrder  Int
   createdAt     DateTime    @default(now())
+  optionGroup   OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+  option        Option      @relation(fields: [optionId], references: [id])
 
   @@unique([optionGroupId, optionId])
   @@unique([optionGroupId, displayOrder])
@@ -117,30 +100,28 @@ model OptionGroupOption {
 }
 
 model Allergen {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  dishes    Dish[]
-  options   Option[]
-  employees Employee[]
+  id        String     @id @default(cuid())
+  name      String     @unique
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  dishes    Dish[]     @relation("AllergenToDish")
+  employees Employee[] @relation("AllergenToEmployee")
+  options   Option[]   @relation("AllergenToOption")
 
   @@index([name])
   @@index([isActive])
 }
 
 model DietaryTag {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  dishes    Dish[]
-  options   Option[]
-  employees Employee[]
+  id        String     @id @default(cuid())
+  name      String     @unique
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  dishes    Dish[]     @relation("DietaryTagToDish")
+  employees Employee[] @relation("DietaryTagToEmployee")
+  options   Option[]   @relation("DietaryTagToOption")
 
   @@index([name])
   @@index([isActive])
@@ -152,20 +133,18 @@ model KitchenStation {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  dishes Dish[]
+  dishes    Dish[]
 
   @@index([name])
   @@index([isActive])
 }
 
 model PortionSize {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                  String               @id @default(cuid())
+  name                String               @unique
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
   optionGroupPortions OptionGroupPortion[]
   optionPortions      OptionPortion[]
 
@@ -176,11 +155,11 @@ model PortionSize {
 model OptionGroupPortion {
   id            String      @id @default(cuid())
   optionGroupId String
-  optionGroup   OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
   portionSizeId String
-  portionSize   PortionSize @relation(fields: [portionSizeId], references: [id], onDelete: Restrict)
   displayOrder  Int
   createdAt     DateTime    @default(now())
+  optionGroup   OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+  portionSize   PortionSize @relation(fields: [portionSizeId], references: [id])
 
   @@unique([optionGroupId, portionSizeId])
   @@unique([optionGroupId, displayOrder])
@@ -191,12 +170,12 @@ model OptionGroupPortion {
 model OptionPortion {
   id            String      @id @default(cuid())
   optionId      String
-  option        Option      @relation(fields: [optionId], references: [id], onDelete: Cascade)
   portionSizeId String
-  portionSize   PortionSize @relation(fields: [portionSizeId], references: [id], onDelete: Restrict)
   extraCharge   Decimal     @db.Decimal(10, 2)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  option        Option      @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  portionSize   PortionSize @relation(fields: [portionSizeId], references: [id])
 
   @@unique([optionId, portionSizeId])
   @@index([optionId])
@@ -204,14 +183,13 @@ model OptionPortion {
 }
 
 model MenuCategory {
-  id           String   @id @default(cuid())
-  name         String   @unique
-  displayOrder Int
-  isActive     Boolean  @default(true)
-  isSecret     Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
+  id                      String                  @id @default(cuid())
+  name                    String                  @unique
+  displayOrder            Int
+  isActive                Boolean                 @default(true)
+  isSecret                Boolean                 @default(false)
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
   categoryDishes          CategoryDish[]
   companyHiddenCategories CompanyHiddenCategory[]
 
@@ -223,16 +201,336 @@ model MenuCategory {
 model CategoryDish {
   id           String       @id @default(cuid())
   categoryId   String
-  category     MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   dishId       String
-  dish         Dish         @relation(fields: [dishId], references: [id], onDelete: Cascade)
   displayOrder Int
   createdAt    DateTime     @default(now())
+  category     MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  dish         Dish         @relation(fields: [dishId], references: [id], onDelete: Cascade)
 
   @@unique([categoryId, dishId])
   @@unique([categoryId, displayOrder])
   @@index([categoryId])
   @@index([dishId])
+}
+
+model Company {
+  id                         String                  @id @default(cuid())
+  name                       String                  @unique
+  isActive                   Boolean                 @default(true)
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
+  priceTierId                String?
+  billingContactEmail        String?
+  billingContactName         String?
+  billingContactPhone        String?
+  defaultDeliveryTime        String?
+  defaultDriverId            String?
+  defaultPackagingType       String?
+  leaveKitchenMinutes        Int                     @default(60)
+  ownerId                    String?
+  standingDriverInstructions String?
+  workingDays                DayOfWeek[]             @default([MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY])
+  defaultDriver              User?                   @relation("CompanyDefaultDriver", fields: [defaultDriverId], references: [id])
+  owner                      Employee?               @relation("CompanyOwner", fields: [ownerId], references: [id])
+  priceTier                  PriceTier?              @relation(fields: [priceTierId], references: [id])
+  emailDomains               CompanyEmailDomain[]
+  companyHiddenCategories    CompanyHiddenCategory[]
+  companyHiddenDishes        CompanyHiddenDish[]
+  holidays                   CompanyHoliday[]
+  deliveryAddresses          DeliveryAddress[]
+  employees                  Employee[]              @relation("CompanyEmployees")
+  Order                      Order[]
+
+  @@index([name])
+  @@index([isActive])
+  @@index([priceTierId])
+  @@index([ownerId])
+  @@index([defaultDriverId])
+}
+
+model Employee {
+  id                       String       @id @default(cuid())
+  name                     String
+  email                    String?      @unique
+  companyId                String
+  isActive                 Boolean      @default(true)
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+  canChangeDeliveryTime    Boolean      @default(false)
+  canChangePackaging       Boolean      @default(false)
+  canChooseDeliveryAddress Boolean      @default(false)
+  ownedCompanies           Company[]    @relation("CompanyOwner")
+  company                  Company      @relation("CompanyEmployees", fields: [companyId], references: [id], onDelete: Cascade)
+  Order                    Order[]
+  allergens                Allergen[]   @relation("AllergenToEmployee")
+  dietaryTags              DietaryTag[] @relation("DietaryTagToEmployee")
+
+  @@index([companyId])
+  @@index([isActive])
+}
+
+model CompanyEmailDomain {
+  id        String   @id @default(cuid())
+  domain    String   @unique
+  companyId String
+  createdAt DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model DeliveryAddress {
+  id                   String   @id @default(cuid())
+  companyId            String
+  label                String?
+  street               String
+  unit                 String?
+  city                 String
+  postcode             String
+  deliveryInstructions String?
+  isDefault            Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  company              Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model CompanyHoliday {
+  id          String   @id @default(cuid())
+  companyId   String
+  date        DateTime @db.Date
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, date])
+  @@index([companyId])
+}
+
+model CompanyHiddenCategory {
+  id         String       @id @default(cuid())
+  companyId  String
+  categoryId String
+  createdAt  DateTime     @default(now())
+  category   MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  company    Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, categoryId])
+  @@index([companyId])
+  @@index([categoryId])
+}
+
+model CompanyHiddenDish {
+  id        String   @id @default(cuid())
+  companyId String
+  dishId    String
+  createdAt DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  dish      Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, dishId])
+  @@index([companyId])
+  @@index([dishId])
+}
+
+model PriceTier {
+  id             String              @id @default(cuid())
+  name           String              @unique
+  description    String?
+  derivationType PriceDerivationType
+  baseTierId     String?
+  multiplier     Decimal?            @db.Decimal(10, 4)
+  percentage     Decimal?            @db.Decimal(10, 2)
+  isDefault      Boolean             @default(false)
+  isActive       Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  companies      Company[]
+  dishPrices     DishPrice[]
+  optionPrices   OptionPrice[]
+  baseTier       PriceTier?          @relation("TierHierarchy", fields: [baseTierId], references: [id], onDelete: Restrict)
+  derivedTiers   PriceTier[]         @relation("TierHierarchy")
+
+  @@index([name])
+  @@index([isDefault])
+  @@index([isActive])
+  @@index([baseTierId])
+}
+
+model DishPrice {
+  id        String    @id @default(cuid())
+  tierId    String
+  dishId    String
+  price     Decimal   @db.Decimal(10, 2)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  dish      Dish      @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  priceTier PriceTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+
+  @@unique([tierId, dishId])
+  @@index([tierId])
+  @@index([dishId])
+}
+
+model OptionPrice {
+  id        String    @id @default(cuid())
+  tierId    String
+  optionId  String
+  price     Decimal   @db.Decimal(10, 2)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  option    Option    @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  priceTier PriceTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+
+  @@unique([tierId, optionId])
+  @@index([tierId])
+  @@index([optionId])
+}
+
+model KitchenHoliday {
+  id          String   @id
+  date        DateTime @unique @db.Date
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+
+  @@index([date])
+}
+
+model KitchenSetting {
+  id          String   @id
+  key         String   @unique
+  value       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+
+  @@index([key])
+}
+
+model Order {
+  id                   String               @id
+  orderNumber          String               @unique
+  employeeId           String
+  companyId            String
+  deliveryDate         DateTime             @db.Date
+  deliveryTime         String
+  status               OrderStatus          @default(DRAFT)
+  packagingType        String
+  deliveryAddressId    String?
+  deliveryAddressLabel String?
+  deliveryStreet       String
+  deliveryUnit         String?
+  deliveryCity         String
+  deliveryPostcode     String
+  deliveryInstructions String?
+  subtotal             Decimal              @db.Decimal(10, 2)
+  total                Decimal              @db.Decimal(10, 2)
+  createdByUserId      String?
+  isInvoiced           Boolean              @default(false)
+  placedAt             DateTime?
+  confirmedAt          DateTime?
+  deliveredAt          DateTime?
+  cancelledAt          DateTime?
+  rejectedAt           DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime
+  Company              Company              @relation(fields: [companyId], references: [id])
+  User                 User?                @relation(fields: [createdByUserId], references: [id])
+  Employee             Employee             @relation(fields: [employeeId], references: [id])
+  OrderLine            OrderLine[]
+  OrderStatusHistory   OrderStatusHistory[]
+
+  @@index([companyId])
+  @@index([createdAt])
+  @@index([deliveryDate])
+  @@index([employeeId])
+  @@index([isInvoiced])
+  @@index([status])
+}
+
+model OrderCombinationOption {
+  id                      String               @id
+  combinationId           String
+  optionGroupId           String?
+  optionGroupNameSnapshot String?
+  optionId                String
+  optionNameSnapshot      String
+  unitPrice               Decimal              @db.Decimal(10, 2)
+  portionSizeId           String?
+  portionSizeNameSnapshot String?
+  portionExtraCharge      Decimal              @default(0) @db.Decimal(10, 2)
+  finalPrice              Decimal              @db.Decimal(10, 2)
+  createdAt               DateTime             @default(now())
+  OrderLineCombination    OrderLineCombination @relation(fields: [combinationId], references: [id], onDelete: Cascade)
+  Option                  Option               @relation(fields: [optionId], references: [id])
+
+  @@index([combinationId])
+  @@index([optionId])
+}
+
+model OrderLine {
+  id                   String                 @id
+  orderId              String
+  dishId               String
+  dishNameSnapshot     String
+  dishSkuSnapshot      String?
+  unitPrice            Decimal                @db.Decimal(10, 2)
+  quantity             Int
+  lineTotal            Decimal                @db.Decimal(10, 2)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime
+  Dish                 Dish                   @relation(fields: [dishId], references: [id])
+  Order                Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  OrderLineCombination OrderLineCombination[]
+
+  @@index([dishId])
+  @@index([orderId])
+}
+
+model OrderLineCombination {
+  id                     String                   @id
+  orderLineId            String
+  quantity               Int
+  unitPrice              Decimal                  @db.Decimal(10, 2)
+  combinationTotal       Decimal                  @db.Decimal(10, 2)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime
+  OrderCombinationOption OrderCombinationOption[]
+  OrderLine              OrderLine                @relation(fields: [orderLineId], references: [id], onDelete: Cascade)
+
+  @@index([orderLineId])
+}
+
+model OrderStatusHistory {
+  id              String       @id
+  orderId         String
+  fromStatus      OrderStatus?
+  toStatus        OrderStatus
+  changedByUserId String?
+  note            String?
+  createdAt       DateTime     @default(now())
+  User            User?        @relation(fields: [changedByUserId], references: [id])
+  Order           Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([orderId])
+}
+
+enum UserRole {
+  ADMIN
+  KITCHEN
+  DISPATCH
+  DRIVER
+}
+
+enum DishTemperature {
+  HOT
+  COLD
 }
 
 enum DayOfWeek {
@@ -245,202 +543,17 @@ enum DayOfWeek {
   SUNDAY
 }
 
-model Company {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Billing Contact
-  billingContactName  String?
-  billingContactEmail String?
-  billingContactPhone String?
-
-  // Calendar
-  workingDays DayOfWeek[] @default([MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY])
-
-  // Delivery Defaults
-  defaultDeliveryTime        String?
-  leaveKitchenMinutes        Int     @default(60)
-  defaultPackagingType       String?
-  standingDriverInstructions String?
-  defaultDriverId            String?
-  defaultDriver              User?   @relation("CompanyDefaultDriver", fields: [defaultDriverId], references: [id], onDelete: SetNull)
-
-  // Company Owner
-  ownerId String?
-  owner   Employee? @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
-
-  // Relations
-  employees               Employee[]               @relation("CompanyEmployees")
-  emailDomains            CompanyEmailDomain[]
-  deliveryAddresses       DeliveryAddress[]
-  holidays                CompanyHoliday[]
-  companyHiddenCategories CompanyHiddenCategory[]
-  companyHiddenDishes     CompanyHiddenDish[]
-  priceTierId             String?
-  priceTier               PriceTier?               @relation(fields: [priceTierId], references: [id], onDelete: SetNull)
-
-  @@index([name])
-  @@index([isActive])
-  @@index([priceTierId])
-  @@index([ownerId])
-  @@index([defaultDriverId])
-}
-
-model Employee {
-  id        String   @id @default(cuid())
-  name      String
-  email     String?  @unique
-  companyId String
-  company   Company  @relation("CompanyEmployees", fields: [companyId], references: [id], onDelete: Cascade)
-  isActive  Boolean  @default(true)
-
-  // Business Permission Flags
-  canChooseDeliveryAddress Boolean @default(false)
-  canChangeDeliveryTime    Boolean @default(false)
-  canChangePackaging       Boolean @default(false)
-
-  // Allergies & Dietary Preferences (Catalogue Reference Data)
-  allergens   Allergen[]
-  dietaryTags DietaryTag[]
-
-  // Owner back-relation
-  ownedCompanies Company[] @relation("CompanyOwner")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([companyId])
-  @@index([isActive])
-}
-
-model CompanyEmailDomain {
-  id        String   @id @default(cuid())
-  domain    String   @unique
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@index([companyId])
-}
-
-model DeliveryAddress {
-  id                   String   @id @default(cuid())
-  companyId            String
-  company              Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  label                String?
-  street               String
-  unit                 String?
-  city                 String
-  postcode             String
-  deliveryInstructions String?
-  isDefault            Boolean  @default(false)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  @@index([companyId])
-}
-
-model CompanyHoliday {
-  id          String   @id @default(cuid())
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  date        DateTime @db.Date
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([companyId, date])
-  @@index([companyId])
-}
-
-model CompanyHiddenCategory {
-  id         String       @id @default(cuid())
-  companyId  String
-  company    Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  categoryId String
-  category   MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  createdAt  DateTime     @default(now())
-
-  @@unique([companyId, categoryId])
-  @@index([companyId])
-  @@index([categoryId])
-}
-
-model CompanyHiddenDish {
-  id        String   @id @default(cuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  dishId    String
-  dish      Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@unique([companyId, dishId])
-  @@index([companyId])
-  @@index([dishId])
-}
-
 enum PriceDerivationType {
   MANUAL
   COST_MULTIPLIER
   TIER_PERCENTAGE
 }
 
-model PriceTier {
-  id             String              @id @default(cuid())
-  name           String              @unique
-  description    String?
-  derivationType PriceDerivationType
-  baseTierId     String?
-  baseTier       PriceTier?          @relation("TierHierarchy", fields: [baseTierId], references: [id], onDelete: Restrict)
-  derivedTiers   PriceTier[]         @relation("TierHierarchy")
-  multiplier     Decimal?            @db.Decimal(10, 4)
-  percentage     Decimal?            @db.Decimal(10, 2)
-  isDefault      Boolean             @default(false)
-  isActive       Boolean             @default(true)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-
-  dishPrices   DishPrice[]
-  optionPrices OptionPrice[]
-  companies    Company[]
-
-  @@index([name])
-  @@index([isDefault])
-  @@index([isActive])
-  @@index([baseTierId])
+enum OrderStatus {
+  DRAFT
+  PLACED
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+  REJECTED
 }
-
-model DishPrice {
-  id        String    @id @default(cuid())
-  tierId    String
-  priceTier PriceTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
-  dishId    String
-  dish      Dish      @relation(fields: [dishId], references: [id], onDelete: Cascade)
-  price     Decimal   @db.Decimal(10, 2)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@unique([tierId, dishId])
-  @@index([tierId])
-  @@index([dishId])
-}
-
-model OptionPrice {
-  id        String    @id @default(cuid())
-  tierId    String
-  priceTier PriceTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
-  optionId  String
-  option    Option    @relation(fields: [optionId], references: [id], onDelete: Cascade)
-  price     Decimal   @db.Decimal(10, 2)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@unique([tierId, optionId])
-  @@index([tierId])
-  @@index([optionId])
-}
-
