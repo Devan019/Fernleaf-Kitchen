@@ -69,6 +69,7 @@ Fernleaf Kitchen Server is a backend API service for managing kitchen operations
 - **Active State Verification**: `JwtStrategy` loads the user fresh from the database on each authenticated request to ensure `isActive === true`.
 - **Centralized Permission Registry**: Operational permissions (`Permission` enum) mapped to roles in `ROLE_PERMISSIONS`. Adding future roles requires updating this single dictionary without modifying controllers.
 - **Server-Side Enforcement**: Enforced via `@UseGuards(JwtAuthGuard, RolesGuard)` or `@UseGuards(JwtAuthGuard, PermissionsGuard)`.
+- **User Management Access Control**: All user management operations (`POST /users`, `GET /users`, `GET /users/:id`, `PATCH /users/:id`, `DELETE /users/:id`) are strictly restricted to the `ADMIN` role via `@Roles(UserRole.ADMIN)` at the controller and route level.
 
 ## Development Commands
 - `bun run dev`: Start local development server with file watch mode (`nest start --watch`).

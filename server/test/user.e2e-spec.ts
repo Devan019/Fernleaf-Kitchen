@@ -1,6 +1,7 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as argon2 from 'argon2';
+import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
@@ -10,6 +11,8 @@ import { UserRole } from '../src/generated/prisma/enums.js';
 describe('User Module (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let adminCookie: string[];
+  let kitchenCookie: string[];
   const createdUserIds: string[] = [];
 
   beforeAll(async () => {
@@ -18,6 +21,7 @@ describe('User Module (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.use(cookieParser());
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -28,6 +32,18 @@ describe('User Module (e2e)', () => {
 
     await app.init();
     prisma = app.get<PrismaService>(PrismaService);
+
+    // Obtain authentication session for Admin
+    const adminLogin = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: 'admin@test.com', password: 'Test@1234' });
+    adminCookie = Array(adminLogin.headers['set-cookie']);
+
+    // Obtain authentication session for Kitchen staff
+    const kitchenLogin = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: 'kitchen@test.com', password: 'Test@1234' });
+    kitchenCookie = Array(kitchenLogin.headers['set-cookie']);
   });
 
   afterAll(async () => {
@@ -44,10 +60,70 @@ describe('User Module (e2e)', () => {
     await app.close();
   });
 
+  describe('AUTHORIZATION GUARDS', () => {
+    it('rejects unauthenticated requests to any user endpoint with 401 Unauthorized', async () => {
+      await request(app.getHttpServer()).post('/users').send({}).expect(401);
+      await request(app.getHttpServer()).get('/users').expect(401);
+      await request(app.getHttpServer()).get('/users/any-id').expect(401);
+      await request(app.getHttpServer())
+        .patch('/users/any-id')
+        .send({})
+        .expect(401);
+      await request(app.getHttpServer()).delete('/users/any-id').expect(401);
+    });
+
+    it('rejects non-admin (Kitchen) user requests (mutations and reads) with 403 Forbidden', async () => {
+      // POST (create) forbidden for non-admin
+      await request(app.getHttpServer())
+        .post('/users')
+        .set('Cookie', kitchenCookie)
+        .send({
+          name: 'Unauthorized User',
+          email: 'unauthorized@example.com',
+          password: 'Test@1234',
+          role: UserRole.DRIVER,
+        })
+        .expect(403);
+
+      // GET (readall) forbidden for non-admin
+      await request(app.getHttpServer())
+        .get('/users')
+        .set('Cookie', kitchenCookie)
+        .expect(403);
+
+      // GET (read) forbidden for non-admin
+      await request(app.getHttpServer())
+        .get('/users/any-id')
+        .set('Cookie', kitchenCookie)
+        .expect(403);
+
+      // PATCH (update) forbidden for non-admin
+      await request(app.getHttpServer())
+        .patch('/users/any-id')
+        .set('Cookie', kitchenCookie)
+        .send({ name: 'Hacker Name' })
+        .expect(403);
+
+      // DELETE (deactivate) forbidden for non-admin
+      await request(app.getHttpServer())
+        .delete('/users/any-id')
+        .set('Cookie', kitchenCookie)
+        .expect(403);
+    });
+
+    it('allows Admin to perform read and readall operations', async () => {
+      await request(app.getHttpServer())
+        .get('/users')
+        .set('Cookie', adminCookie)
+        .expect(200);
+    });
+  });
+
   describe('VALIDATION', () => {
     it('27. Unknown fields are rejected with 400 Bad Request', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
+        .set('Cookie', adminCookie)
         .send({
           name: 'Hacker',
           email: 'hacker@example.com',
@@ -59,15 +135,14 @@ describe('User Module (e2e)', () => {
         .expect(400);
 
       expect(response.body.message).toEqual(
-        expect.arrayContaining([
-          expect.stringContaining('should not exist'),
-        ]),
+        expect.arrayContaining([expect.stringContaining('should not exist')]),
       );
     });
 
     it('28. Invalid role is rejected with 400 Bad Request', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
+        .set('Cookie', adminCookie)
         .send({
           name: 'Bad Role',
           email: 'badrole@example.com',
@@ -86,6 +161,7 @@ describe('User Module (e2e)', () => {
     it('29. Invalid email is rejected with 400 Bad Request', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
+        .set('Cookie', adminCookie)
         .send({
           name: 'Bad Email',
           email: 'not-an-email',
@@ -104,6 +180,7 @@ describe('User Module (e2e)', () => {
     it('5. Missing required fields are rejected with 400 Bad Request', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
+        .set('Cookie', adminCookie)
         .send({})
         .expect(400);
 
@@ -113,6 +190,7 @@ describe('User Module (e2e)', () => {
     it('rejects passwords shorter than 8 characters', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
+        .set('Cookie', adminCookie)
         .send({
           name: 'Short Pass',
           email: 'shortpass@example.com',
@@ -123,7 +201,9 @@ describe('User Module (e2e)', () => {
 
       expect(response.body.message).toEqual(
         expect.arrayContaining([
-          expect.stringContaining('Password must be at least 8 characters long'),
+          expect.stringContaining(
+            'Password must be at least 8 characters long',
+          ),
         ]),
       );
     });
@@ -136,6 +216,7 @@ describe('User Module (e2e)', () => {
     it('1. Successfully creates a user and returns 201 Created', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
+        .set('Cookie', adminCookie)
         .send({
           name: 'Test Staff',
           email: testEmail,
@@ -179,6 +260,7 @@ describe('User Module (e2e)', () => {
     it('7. Duplicate email returns 409 Conflict', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
+        .set('Cookie', adminCookie)
         .send({
           name: 'Duplicate Staff',
           email: testEmail,
@@ -195,6 +277,7 @@ describe('User Module (e2e)', () => {
     it('9 & 10. Returns paginated users with correct pagination metadata', async () => {
       const response = await request(app.getHttpServer())
         .get('/users?page=1&limit=2')
+        .set('Cookie', adminCookie)
         .expect(200);
 
       expect(response.body.data).toBeInstanceOf(Array);
@@ -213,6 +296,7 @@ describe('User Module (e2e)', () => {
     it('13. passwordHash is never returned in GET /users list', async () => {
       const response = await request(app.getHttpServer())
         .get('/users')
+        .set('Cookie', adminCookie)
         .expect(200);
 
       for (const user of response.body.data) {
@@ -229,6 +313,7 @@ describe('User Module (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get(`/users/${adminUser!.id}`)
+        .set('Cookie', adminCookie)
         .expect(200);
 
       expect(response.body.id).toBe(adminUser!.id);
@@ -241,6 +326,7 @@ describe('User Module (e2e)', () => {
     it('12. Missing user returns 404 Not Found', async () => {
       await request(app.getHttpServer())
         .get('/users/non-existent-user-id-999')
+        .set('Cookie', adminCookie)
         .expect(404);
     });
   });
@@ -266,6 +352,7 @@ describe('User Module (e2e)', () => {
     it('14. User can update name', async () => {
       const response = await request(app.getHttpServer())
         .patch(`/users/${updateUserId}`)
+        .set('Cookie', adminCookie)
         .send({ name: 'After Update' })
         .expect(200);
 
@@ -277,6 +364,7 @@ describe('User Module (e2e)', () => {
       const newEmail = `updated-email-${Date.now()}@example.com`;
       const response = await request(app.getHttpServer())
         .patch(`/users/${updateUserId}`)
+        .set('Cookie', adminCookie)
         .send({ email: newEmail })
         .expect(200);
 
@@ -286,6 +374,7 @@ describe('User Module (e2e)', () => {
     it('16. User can update role', async () => {
       const response = await request(app.getHttpServer())
         .patch(`/users/${updateUserId}`)
+        .set('Cookie', adminCookie)
         .send({ role: UserRole.DISPATCH })
         .expect(200);
 
@@ -295,6 +384,7 @@ describe('User Module (e2e)', () => {
     it('17. User can update isActive', async () => {
       const response = await request(app.getHttpServer())
         .patch(`/users/${updateUserId}`)
+        .set('Cookie', adminCookie)
         .send({ isActive: false })
         .expect(200);
 
@@ -303,6 +393,7 @@ describe('User Module (e2e)', () => {
       // Re-enable for subsequent tests
       await request(app.getHttpServer())
         .patch(`/users/${updateUserId}`)
+        .set('Cookie', adminCookie)
         .send({ isActive: true })
         .expect(200);
     });
@@ -311,6 +402,7 @@ describe('User Module (e2e)', () => {
       const newPlaintext = 'BrandNewPassword@4321';
       const response = await request(app.getHttpServer())
         .patch(`/users/${updateUserId}`)
+        .set('Cookie', adminCookie)
         .send({ password: newPlaintext })
         .expect(200);
 
@@ -330,6 +422,7 @@ describe('User Module (e2e)', () => {
     it('20. Duplicate email returns 409 Conflict', async () => {
       await request(app.getHttpServer())
         .patch(`/users/${updateUserId}`)
+        .set('Cookie', adminCookie)
         .send({ email: 'admin@test.com' })
         .expect(409);
     });
@@ -337,6 +430,7 @@ describe('User Module (e2e)', () => {
     it('21. Missing user returns 404 Not Found on update', async () => {
       await request(app.getHttpServer())
         .patch('/users/non-existent-user-id-999')
+        .set('Cookie', adminCookie)
         .send({ name: 'Ghost' })
         .expect(404);
     });
@@ -344,6 +438,7 @@ describe('User Module (e2e)', () => {
     it('22. passwordHash cannot be supplied directly', async () => {
       await request(app.getHttpServer())
         .patch(`/users/${updateUserId}`)
+        .set('Cookie', adminCookie)
         .send({ passwordHash: 'injected-hash' })
         .expect(400);
     });
@@ -370,6 +465,7 @@ describe('User Module (e2e)', () => {
     it('23 & 25. DELETE deactivates user with isActive=false and does not return passwordHash', async () => {
       const response = await request(app.getHttpServer())
         .delete(`/users/${deleteUserId}`)
+        .set('Cookie', adminCookie)
         .expect(200);
 
       expect(response.body.id).toBe(deleteUserId);
@@ -389,6 +485,7 @@ describe('User Module (e2e)', () => {
       // API verification
       const apiResponse = await request(app.getHttpServer())
         .get(`/users/${deleteUserId}`)
+        .set('Cookie', adminCookie)
         .expect(200);
 
       expect(apiResponse.body.id).toBe(deleteUserId);
@@ -398,6 +495,7 @@ describe('User Module (e2e)', () => {
     it('26. Missing user returns 404 Not Found on delete', async () => {
       await request(app.getHttpServer())
         .delete('/users/non-existent-user-id-999')
+        .set('Cookie', adminCookie)
         .expect(404);
     });
   });

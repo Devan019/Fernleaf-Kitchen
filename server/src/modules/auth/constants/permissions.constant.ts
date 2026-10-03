@@ -9,7 +9,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   [UserRole.ADMIN]: Object.values(Permission),
 
   [UserRole.KITCHEN]: [
-    Permission.KITCHEN_READ,    
+    Permission.KITCHEN_READ,
     Permission.KITCHEN_UPDATE,
     Permission.USER_READ,
     Permission.DELIVERY_READ_ALL,

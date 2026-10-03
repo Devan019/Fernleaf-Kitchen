@@ -24,7 +24,9 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest<{ user?: AuthenticatedUser }>();
+    const { user } = context
+      .switchToHttp()
+      .getRequest<{ user?: AuthenticatedUser }>();
 
     if (!user || !user.role) {
       throw new ForbiddenException('Access denied: User has no assigned role');
