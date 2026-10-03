@@ -28,6 +28,8 @@ model User {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  defaultDriverCompanies Company[] @relation("CompanyDefaultDriver")
 }
 
 enum DishTemperature {
@@ -121,8 +123,9 @@ model Allergen {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  dishes  Dish[]
-  options Option[]
+  dishes    Dish[]
+  options   Option[]
+  employees Employee[]
 
   @@index([name])
   @@index([isActive])
@@ -135,8 +138,9 @@ model DietaryTag {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  dishes  Dish[]
-  options Option[]
+  dishes    Dish[]
+  options   Option[]
+  employees Employee[]
 
   @@index([name])
   @@index([isActive])
@@ -231,6 +235,16 @@ model CategoryDish {
   @@index([dishId])
 }
 
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
 model Company {
   id        String   @id @default(cuid())
   name      String   @unique
@@ -238,15 +252,41 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  employees               Employee[]
+  // Billing Contact
+  billingContactName  String?
+  billingContactEmail String?
+  billingContactPhone String?
+
+  // Calendar
+  workingDays DayOfWeek[] @default([MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY])
+
+  // Delivery Defaults
+  defaultDeliveryTime        String?
+  leaveKitchenMinutes        Int     @default(60)
+  defaultPackagingType       String?
+  standingDriverInstructions String?
+  defaultDriverId            String?
+  defaultDriver              User?   @relation("CompanyDefaultDriver", fields: [defaultDriverId], references: [id], onDelete: SetNull)
+
+  // Company Owner
+  ownerId String?
+  owner   Employee? @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  // Relations
+  employees               Employee[]               @relation("CompanyEmployees")
+  emailDomains            CompanyEmailDomain[]
+  deliveryAddresses       DeliveryAddress[]
+  holidays                CompanyHoliday[]
   companyHiddenCategories CompanyHiddenCategory[]
   companyHiddenDishes     CompanyHiddenDish[]
   priceTierId             String?
-  priceTier               PriceTier?              @relation(fields: [priceTierId], references: [id], onDelete: SetNull)
+  priceTier               PriceTier?               @relation(fields: [priceTierId], references: [id], onDelete: SetNull)
 
   @@index([name])
   @@index([isActive])
   @@index([priceTierId])
+  @@index([ownerId])
+  @@index([defaultDriverId])
 }
 
 model Employee {
@@ -254,13 +294,67 @@ model Employee {
   name      String
   email     String?  @unique
   companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company   Company  @relation("CompanyEmployees", fields: [companyId], references: [id], onDelete: Cascade)
   isActive  Boolean  @default(true)
+
+  // Business Permission Flags
+  canChooseDeliveryAddress Boolean @default(false)
+  canChangeDeliveryTime    Boolean @default(false)
+  canChangePackaging       Boolean @default(false)
+
+  // Allergies & Dietary Preferences (Catalogue Reference Data)
+  allergens   Allergen[]
+  dietaryTags DietaryTag[]
+
+  // Owner back-relation
+  ownedCompanies Company[] @relation("CompanyOwner")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([companyId])
   @@index([isActive])
+}
+
+model CompanyEmailDomain {
+  id        String   @id @default(cuid())
+  domain    String   @unique
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+}
+
+model DeliveryAddress {
+  id                   String   @id @default(cuid())
+  companyId            String
+  company              Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  label                String?
+  street               String
+  unit                 String?
+  city                 String
+  postcode             String
+  deliveryInstructions String?
+  isDefault            Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+model CompanyHoliday {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  date        DateTime @db.Date
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([companyId, date])
+  @@index([companyId])
 }
 
 model CompanyHiddenCategory {

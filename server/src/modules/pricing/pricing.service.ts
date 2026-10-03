@@ -89,8 +89,9 @@ export class PricingService {
     );
 
     try {
-      return await this.prisma.$transaction(async (tx) => {
-        // If this tier is marked as default, unset any existing default
+      return await this.prisma.$transaction(
+        async (tx) => {
+          // If this tier is marked as default, unset any existing default
         if (dto.isDefault) {
           await tx.priceTier.updateMany({
             where: { isDefault: true },
@@ -133,7 +134,9 @@ export class PricingService {
         });
 
         return this.mapTierToResponse(tier);
-      });
+      },
+      { timeout: 15000, maxWait: 10000 },
+    );
     } catch (error) {
       if (isPrismaError(error, 'P2002')) {
         throw new ConflictException(

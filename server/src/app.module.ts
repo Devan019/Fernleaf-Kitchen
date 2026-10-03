@@ -9,6 +9,8 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { CatalogueModule } from './modules/catalogue/catalogue.module.js';
 import { MenuModule } from './modules/menu/menu.module.js';
 import { PricingModule } from './modules/pricing/pricing.module.js';
+import { CompaniesModule } from './modules/company/company.module.js';
+import { EmployeesModule } from './modules/employee/employee.module.js';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { PricingModule } from './modules/pricing/pricing.module.js';
     CatalogueModule,
     MenuModule,
     PricingModule,
+    CompaniesModule,
+    EmployeesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

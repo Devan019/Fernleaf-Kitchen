@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient, Prisma } from '../src/generated/prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { DishTemperature, PriceDerivationType, UserRole } from '../src/generated/prisma/enums.js';
+import { DishTemperature, PriceDerivationType, UserRole, DayOfWeek } from '../src/generated/prisma/enums.js';
 import { hashPassword } from '../src/common/utils/index.js';
 
 const adapter = new PrismaPg({
@@ -473,59 +473,390 @@ async function main() {
 
   // 7. Companies and Employees
   console.log('\nSeeding Companies and Employees...');
+  const driverUser = await prisma.user.findUnique({
+    where: { email: 'driver@test.com' },
+  });
+
   const companyData = [
-    { name: 'Acme Corp' },
-    { name: 'Globex Inc' },
-    { name: 'Initech LLC' },
+    {
+      name: 'Google',
+      billingContactName: 'Sundar Pichai',
+      billingContactEmail: 'billing@google.com',
+      billingContactPhone: '+1-650-253-0000',
+      domains: ['google.com', 'alphabet.com'],
+      addresses: [
+        {
+          label: 'HQ Main Campus',
+          street: '1600 Amphitheatre Parkway',
+          city: 'Mountain View',
+          postcode: 'CA 94043',
+          deliveryInstructions: 'Deliver to main reception, ask for cafeteria dispatch',
+          isDefault: true,
+        },
+        {
+          label: 'NYC Office',
+          street: '111 8th Ave',
+          city: 'New York',
+          postcode: 'NY 10011',
+          deliveryInstructions: 'Deliver to 4th floor loading bay',
+          isDefault: false,
+        },
+      ],
+      holidays: [
+        { date: '2026-12-25', name: 'Christmas Day' },
+        { date: '2026-01-01', name: "New Year's Day" },
+      ],
+    },
+    {
+      name: 'TCS',
+      billingContactName: 'Rajesh Gopinathan',
+      billingContactEmail: 'billing@tcs.com',
+      billingContactPhone: '+91-22-6778-9999',
+      domains: ['tcs.com', 'tataconsultancy.com'],
+      addresses: [
+        {
+          label: 'Olympus Facility',
+          street: 'TCS Olympus, Hiranandani Estate',
+          city: 'Thane',
+          postcode: '400607',
+          deliveryInstructions: 'Security check at Gate 2',
+          isDefault: true,
+        },
+      ],
+      holidays: [
+        { date: '2026-10-20', name: 'Diwali' },
+        { date: '2026-12-25', name: 'Christmas Day' },
+      ],
+    },
+    {
+      name: 'Microsoft',
+      billingContactName: 'Satya Nadella',
+      billingContactEmail: 'billing@microsoft.com',
+      billingContactPhone: '+1-425-882-8080',
+      domains: ['microsoft.com', 'msft.com'],
+      addresses: [
+        {
+          label: 'Redmond Headquarters',
+          street: 'One Microsoft Way',
+          city: 'Redmond',
+          postcode: 'WA 98052',
+          deliveryInstructions: 'Building 92 Visitor Center',
+          isDefault: true,
+        },
+      ],
+      holidays: [
+        { date: '2026-11-26', name: 'Thanksgiving Day' },
+      ],
+    },
+    {
+      name: 'Acme Corp',
+      billingContactName: 'Wile E. Coyote',
+      billingContactEmail: 'billing@acme.com',
+      billingContactPhone: '+1-555-0100',
+      domains: ['acme.com'],
+      addresses: [
+        {
+          label: 'Acme Headquarters',
+          street: '100 Acme Way',
+          city: 'Austin',
+          postcode: 'TX 78701',
+          isDefault: true,
+        },
+      ],
+      holidays: [],
+    },
+    {
+      name: 'Globex Inc',
+      billingContactName: 'Hank Scorpio',
+      billingContactEmail: 'billing@globex.com',
+      billingContactPhone: '+1-555-0200',
+      domains: ['globex.com'],
+      addresses: [
+        {
+          label: 'Globex Tower',
+          street: '200 Globex Blvd',
+          city: 'Chicago',
+          postcode: 'IL 60601',
+          isDefault: true,
+        },
+      ],
+      holidays: [],
+    },
+    {
+      name: 'Initech LLC',
+      billingContactName: 'Bill Lumbergh',
+      billingContactEmail: 'billing@initech.com',
+      billingContactPhone: '+1-555-0300',
+      domains: ['initech.com'],
+      addresses: [
+        {
+          label: 'Initech Office Park',
+          street: '4120 Freidrich Lane',
+          city: 'Austin',
+          postcode: 'TX 78744',
+          isDefault: true,
+        },
+      ],
+      holidays: [],
+    },
   ];
 
   const seededCompanies: Record<string, { id: string; name: string }> = {};
   for (const comp of companyData) {
     const record = await prisma.company.upsert({
       where: { name: comp.name },
-      update: { isActive: true },
-      create: { name: comp.name, isActive: true },
+      update: {
+        billingContactName: comp.billingContactName,
+        billingContactEmail: comp.billingContactEmail,
+        billingContactPhone: comp.billingContactPhone,
+        workingDays: [
+          DayOfWeek.MONDAY,
+          DayOfWeek.TUESDAY,
+          DayOfWeek.WEDNESDAY,
+          DayOfWeek.THURSDAY,
+          DayOfWeek.FRIDAY,
+        ],
+        defaultDeliveryTime: '12:30',
+        leaveKitchenMinutes: 60,
+        defaultPackagingType: 'ECO_BOX',
+        standingDriverInstructions: 'Please call before arrival',
+        defaultDriverId: driverUser ? driverUser.id : null,
+        isActive: true,
+      },
+      create: {
+        name: comp.name,
+        billingContactName: comp.billingContactName,
+        billingContactEmail: comp.billingContactEmail,
+        billingContactPhone: comp.billingContactPhone,
+        workingDays: [
+          DayOfWeek.MONDAY,
+          DayOfWeek.TUESDAY,
+          DayOfWeek.WEDNESDAY,
+          DayOfWeek.THURSDAY,
+          DayOfWeek.FRIDAY,
+        ],
+        defaultDeliveryTime: '12:30',
+        leaveKitchenMinutes: 60,
+        defaultPackagingType: 'ECO_BOX',
+        standingDriverInstructions: 'Please call before arrival',
+        defaultDriverId: driverUser ? driverUser.id : null,
+        isActive: true,
+      },
     });
     seededCompanies[comp.name] = record;
-  }
-  console.log(`✓ Seeded ${companyData.length} Companies`);
 
-  // Seed customer employees (independent customer entities belonging to companies)
+    // Seed email domains
+    for (const domain of comp.domains) {
+      await prisma.companyEmailDomain.upsert({
+        where: { domain },
+        update: { companyId: record.id },
+        create: { domain, companyId: record.id },
+      });
+    }
+
+    // Seed addresses
+    for (const addr of comp.addresses) {
+      const existingAddr = await prisma.deliveryAddress.findFirst({
+        where: { companyId: record.id, street: addr.street },
+      });
+      if (!existingAddr) {
+        await prisma.deliveryAddress.create({
+          data: {
+            companyId: record.id,
+            label: addr.label,
+            street: addr.street,
+            city: addr.city,
+            postcode: addr.postcode,
+            deliveryInstructions: addr.deliveryInstructions,
+            isDefault: addr.isDefault,
+          },
+        });
+      }
+    }
+
+    // Seed holidays
+    for (const hol of comp.holidays) {
+      const dateObj = new Date(`${hol.date}T00:00:00.000Z`);
+      await prisma.companyHoliday.upsert({
+        where: {
+          companyId_date: {
+            companyId: record.id,
+            date: dateObj,
+          },
+        },
+        update: { name: hol.name },
+        create: {
+          companyId: record.id,
+          date: dateObj,
+          name: hol.name,
+        },
+      });
+    }
+  }
+  console.log(`✓ Seeded ${companyData.length} Companies with Domains, Addresses, and Holidays`);
+
+  // Seed customer employees with varied permissions, allergies, dietary preferences, and owners
   const employeesData = [
+    // Google Employees
+    {
+      name: 'Rahul Sharma',
+      email: 'rahul@google.com',
+      company: 'Google',
+      isOwner: true,
+      canChooseDeliveryAddress: true,
+      canChangeDeliveryTime: false,
+      canChangePackaging: true,
+      allergens: ['Milk'],
+      dietaryTags: ['Vegetarian'],
+    },
+    {
+      name: 'Priya Patel',
+      email: 'priya@google.com',
+      company: 'Google',
+      isOwner: false,
+      canChooseDeliveryAddress: false,
+      canChangeDeliveryTime: true,
+      canChangePackaging: false,
+      allergens: ['Peanuts'],
+      dietaryTags: ['Vegan'],
+    },
+    {
+      name: 'Amit Kumar',
+      email: 'amit@google.com',
+      company: 'Google',
+      isOwner: false,
+      canChooseDeliveryAddress: true,
+      canChangeDeliveryTime: true,
+      canChangePackaging: true,
+      allergens: ['Gluten'],
+      dietaryTags: ['Jain'],
+    },
+    // TCS Employees
+    {
+      name: 'Vikram Malhotra',
+      email: 'vikram@tcs.com',
+      company: 'TCS',
+      isOwner: true,
+      canChooseDeliveryAddress: false,
+      canChangeDeliveryTime: false,
+      canChangePackaging: false,
+      allergens: [],
+      dietaryTags: ['Vegetarian'],
+    },
+    {
+      name: 'Ananya Sen',
+      email: 'ananya@tcs.com',
+      company: 'TCS',
+      isOwner: false,
+      canChooseDeliveryAddress: true,
+      canChangeDeliveryTime: false,
+      canChangePackaging: true,
+      allergens: ['Soy'],
+      dietaryTags: ['Gluten-Free'],
+    },
+    // Microsoft Employees
+    {
+      name: 'David Miller',
+      email: 'david@microsoft.com',
+      company: 'Microsoft',
+      isOwner: true,
+      canChooseDeliveryAddress: true,
+      canChangeDeliveryTime: true,
+      canChangePackaging: false,
+      allergens: [],
+      dietaryTags: ['Vegetarian'],
+    },
+    {
+      name: 'Sarah Connor',
+      email: 'sarah@microsoft.com',
+      company: 'Microsoft',
+      isOwner: false,
+      canChooseDeliveryAddress: false,
+      canChangeDeliveryTime: true,
+      canChangePackaging: true,
+      allergens: ['Milk'],
+      dietaryTags: ['Vegetarian'],
+    },
+    // Acme, Globex, Initech Employees (preserving original test references)
     {
       name: 'Alice Smith',
       email: 'alice@acme.com',
       company: 'Acme Corp',
+      isOwner: true,
+      canChooseDeliveryAddress: true,
+      canChangeDeliveryTime: false,
+      canChangePackaging: true,
+      allergens: [],
+      dietaryTags: [],
     },
     {
       name: 'Bob Jones',
       email: 'bob@globex.com',
       company: 'Globex Inc',
+      isOwner: true,
+      canChooseDeliveryAddress: false,
+      canChangeDeliveryTime: true,
+      canChangePackaging: false,
+      allergens: [],
+      dietaryTags: [],
     },
     {
       name: 'Charlie Brown',
       email: 'charlie@initech.com',
       company: 'Initech LLC',
+      isOwner: true,
+      canChooseDeliveryAddress: true,
+      canChangeDeliveryTime: true,
+      canChangePackaging: true,
+      allergens: [],
+      dietaryTags: [],
     },
   ];
 
   for (const emp of employeesData) {
-    await prisma.employee.upsert({
+    const compRecord = seededCompanies[emp.company];
+    const employee = await prisma.employee.upsert({
       where: { email: emp.email },
       update: {
         name: emp.name,
-        companyId: seededCompanies[emp.company].id,
+        companyId: compRecord.id,
+        canChooseDeliveryAddress: emp.canChooseDeliveryAddress,
+        canChangeDeliveryTime: emp.canChangeDeliveryTime,
+        canChangePackaging: emp.canChangePackaging,
         isActive: true,
+        allergens: {
+          set: emp.allergens.map((a) => ({ id: allergens[a].id })),
+        },
+        dietaryTags: {
+          set: emp.dietaryTags.map((d) => ({ id: dietaryTags[d].id })),
+        },
       },
       create: {
         name: emp.name,
         email: emp.email,
-        companyId: seededCompanies[emp.company].id,
+        companyId: compRecord.id,
+        canChooseDeliveryAddress: emp.canChooseDeliveryAddress,
+        canChangeDeliveryTime: emp.canChangeDeliveryTime,
+        canChangePackaging: emp.canChangePackaging,
         isActive: true,
+        allergens: {
+          connect: emp.allergens.map((a) => ({ id: allergens[a].id })),
+        },
+        dietaryTags: {
+          connect: emp.dietaryTags.map((d) => ({ id: dietaryTags[d].id })),
+        },
       },
     });
+
+    // Set as company owner if designated
+    if (emp.isOwner) {
+      await prisma.company.update({
+        where: { id: compRecord.id },
+        data: { ownerId: employee.id },
+      });
+    }
   }
-  console.log(`✓ Seeded ${employeesData.length} Employees`);
+  console.log(`✓ Seeded ${employeesData.length} Employees with Preferences, Permissions, and Company Owners`);
 
   // 8. Menu Categories
   console.log('\nSeeding Menu Categories and Category Dishes...');
@@ -645,6 +976,52 @@ async function main() {
     });
     console.log(
       `✓ Seeded: Hidden Dish 'Chocolate Brownie' for Company 'Globex Inc'`,
+    );
+  }
+
+  // Company C ("Google"): Hide "Breakfast" category
+  const googleCompany = seededCompanies['Google'];
+  const breakfastCategory = seededCategories['Breakfast'];
+  if (googleCompany && breakfastCategory) {
+    await prisma.companyHiddenCategory.upsert({
+      where: {
+        companyId_categoryId: {
+          companyId: googleCompany.id,
+          categoryId: breakfastCategory.id,
+        },
+      },
+      update: {},
+      create: {
+        companyId: googleCompany.id,
+        categoryId: breakfastCategory.id,
+      },
+    });
+    console.log(
+      `✓ Seeded: Hidden Category 'Breakfast' for Company 'Google'`,
+    );
+  }
+
+  // Company D ("TCS"): Hide "Chicken Rice Bowl" dish
+  const tcsCompany = seededCompanies['TCS'];
+  const chickenDish = await prisma.dish.findUnique({
+    where: { sku: 'DISH-CHK-001' },
+  });
+  if (tcsCompany && chickenDish) {
+    await prisma.companyHiddenDish.upsert({
+      where: {
+        companyId_dishId: {
+          companyId: tcsCompany.id,
+          dishId: chickenDish.id,
+        },
+      },
+      update: {},
+      create: {
+        companyId: tcsCompany.id,
+        dishId: chickenDish.id,
+      },
+    });
+    console.log(
+      `✓ Seeded: Hidden Dish 'Chicken Rice Bowl' for Company 'TCS'`,
     );
   }
 
@@ -846,6 +1223,9 @@ async function main() {
   // Acme Corp -> null priceTierId (uses Default Standard Tier)
   // Globex Inc -> Enterprise Tier
   // Initech LLC -> Partner Tier
+  // Google -> Enterprise Tier
+  // TCS -> Partner Tier
+  // Microsoft -> Standard Tier
   await prisma.company.update({
     where: { name: 'Acme Corp' },
     data: { priceTierId: null },
@@ -860,7 +1240,22 @@ async function main() {
     where: { name: 'Initech LLC' },
     data: { priceTierId: partnerTier.id },
   });
-  console.log(`✓ Assigned Companies to Price Tiers: Acme (Default), Globex (Enterprise), Initech (Partner)`);
+
+  await prisma.company.update({
+    where: { name: 'Google' },
+    data: { priceTierId: enterpriseTier.id },
+  });
+
+  await prisma.company.update({
+    where: { name: 'TCS' },
+    data: { priceTierId: partnerTier.id },
+  });
+
+  await prisma.company.update({
+    where: { name: 'Microsoft' },
+    data: { priceTierId: standardTier.id },
+  });
+  console.log(`✓ Assigned Companies to Price Tiers: Acme (Default), Globex & Google (Enterprise), Initech & TCS (Partner), Microsoft (Standard)`);
 
   console.log('\nDatabase seed finished successfully and idempotently.');
 }

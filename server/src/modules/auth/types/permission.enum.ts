@@ -43,4 +43,16 @@ export enum Permission {
   PRICING_CREATE = 'pricing:create',
   PRICING_UPDATE = 'pricing:update',
   PRICING_DELETE = 'pricing:delete',
+
+  // Company operations
+  COMPANY_READ = 'company:read',
+  COMPANY_CREATE = 'company:create',
+  COMPANY_UPDATE = 'company:update',
+  COMPANY_DELETE = 'company:delete',
+
+  // Employee operations
+  EMPLOYEE_READ = 'employee:read',
+  EMPLOYEE_CREATE = 'employee:create',
+  EMPLOYEE_UPDATE = 'employee:update',
+  EMPLOYEE_DELETE = 'employee:delete',
 }
