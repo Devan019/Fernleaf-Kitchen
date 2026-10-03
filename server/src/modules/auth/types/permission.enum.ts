@@ -71,5 +71,9 @@ export enum Permission {
   BILLING_UPDATE = 'billing:update',
   BILLING_PAY = 'billing:pay',
   BILLING_ADJUST = 'billing:adjust',
+
+  // Settings operations
+  SETTINGS_READ = 'settings:read',
+  SETTINGS_UPDATE = 'settings:update',
 }
 

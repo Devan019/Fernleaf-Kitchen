@@ -157,3 +157,28 @@ The invoice remains in `PAID` status. Post-payment adjustments are recorded and 
 ### Why?
 To preserve historical financial accuracy, maintain auditability and traceability, and avoid silently rewriting invoices.
 
+## Settings
+
+### Kitchen working days
+Platform-wide kitchen working days define which weekdays the kitchen operates (e.g. `MONDAY` through `FRIDAY`). These weekdays are considered valid working days when calculating cut-off milestones and operational schedules. Weekends or unconfigured weekdays are automatically skipped during backwards calculation.
+
+### Kitchen holidays
+Platform-wide kitchen holidays represent specific calendar dates on which the kitchen is closed (e.g., Christmas Day, New Year's Day). These dates are strictly excluded from kitchen working-day calculations. Kitchen holiday dates are unique across the platform.
+
+### Cutoff
+Order cut-off determines the deadline by which an order must be placed or edited before it is automatically locked and confirmed.
+The cut-off date and time are determined by:
+1. Taking the target `deliveryDate` (e.g., Wednesday).
+2. Stepping backwards day-by-day to count `cutOffWorkingDays` (e.g., 2 working days), skipping weekends and any registered kitchen holidays.
+3. Applying the configured `cutOffTime` (e.g., `16:00` in the application timezone).
+For example: For a Wednesday delivery with `cutOffWorkingDays = 2` and `cutOffTime = 16:00`, counting backwards: Tuesday is 1 day, Monday is 2 days -> the cut-off is Monday at 16:00. If Monday is a kitchen holiday, the calculation counts further backward to Friday at 16:00.
+
+### Company vs Kitchen calendar
+There are two completely separate calendars in the platform:
+- **Company Calendar**: Company-specific working days and holidays. Used exclusively to determine whether a customer company is open and eligible to receive food deliveries on a given date.
+- **Kitchen Calendar**: Platform-wide kitchen working days and holidays. Used exclusively to calculate kitchen production schedules and order cut-off deadlines.
+The Company calendar never alters order cut-off calculations, and the Kitchen calendar never determines whether an individual customer company is open.
+
+### Configuration
+Authorized staff (`ADMIN` role) can modify all operational settings (working days, cut-off time, cut-off working-day count, platform timezone) and manage kitchen holidays (create, list, update, delete) via the Admin Panel and backend REST APIs (`/settings/kitchen`, `/settings/kitchen/holidays`). Staff do not need to edit source code, environment variables, database schemas, or database tables manually. Changes take effect immediately for future calculations without requiring an application restart.
+

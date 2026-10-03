@@ -148,3 +148,14 @@ Required variables (see `.env.example`):
 - **Transactional Consistency**: Invoice creation, payment updates, and adjustment additions execute inside serializable/isolated Prisma transactions.
 - **Paid Invoice Immutability**: Paid invoices remain historical financial records (`status: PAID`). Post-payment adjustments update net invoice balances without altering PAID status.
 
+## Settings Architecture
+- **Database Persistence**: Platform operational settings (`KitchenSetting`) and holidays (`KitchenHoliday`) are persisted in the database so staff can configure them via admin APIs without touching code, environment variables, or schema.
+- **Platform-Wide Kitchen Scope**: Kitchen settings (working days, cut-off time, cut-off working-day count, timezone) represent a platform-wide singleton configuration.
+- **Strict Domain Calendar Segregation**: The Company Calendar (working days, holidays) determines whether a company can receive delivery on a specific date. The Kitchen Calendar (kitchen working days, kitchen holidays) strictly determines backwards cut-off calculations and operational planning. The company calendar never affects order cut-off calculations.
+- **Single Access Layer**: `SettingsService` provides the centralized access layer (`getKitchenSettings`, `isKitchenWorkingDay`, `isKitchenHoliday`, `getKitchenCutOffTime`, `getKitchenTimezone`). Other modules (Order, Kitchen, Dispatch) never query `KitchenSetting` or `KitchenHoliday` directly from Prisma.
+- **Dynamic Cut-Off Integration**: `OrderCutoffService` consumes `SettingsService` directly. Cut-off calculations reflect updated settings and newly registered holidays immediately without application restart.
+- **Kitchen Holiday Uniqueness**: Kitchen holiday dates are unique (`@unique @db.Date`). Duplicate holiday dates are rejected at both database and application level (`409 Conflict`).
+- **Role-Based Access Control**: Only `ADMIN` can update settings and perform mutations on kitchen holidays (`Permission.SETTINGS_UPDATE`). Operational roles `KITCHEN` and `DISPATCH` have read-only access (`Permission.SETTINGS_READ`). `DRIVER` role is strictly forbidden (`403 Forbidden`).
+- **Historical Immutability**: Changing settings or holidays only affects current and future operational calculations. Historical order timestamps, confirmed orders, and audit history are never retroactively rewritten.
+- **No Hardcoded Operational Values**: Operational parameters (cut-off time, cut-off working days, operational days, platform timezone) are retrieved dynamically from `SettingsService` and must never be hardcoded in application logic.
+

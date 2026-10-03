@@ -3,17 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../../../common/prisma/prisma.service.js';
 import { DayOfWeek, OrderStatus } from '../../../generated/prisma/enums.js';
 import { KitchenUnitService } from '../../kitchen/kitchen-unit.service.js';
+import { SettingsService } from '../../settings/settings.service.js';
 import { CutoffCheckResult, CutoffProcessResult } from '../types/order.types.js';
-
-const DAY_OF_WEEK_MAP: readonly DayOfWeek[] = [
-  DayOfWeek.SUNDAY,
-  DayOfWeek.MONDAY,
-  DayOfWeek.TUESDAY,
-  DayOfWeek.WEDNESDAY,
-  DayOfWeek.THURSDAY,
-  DayOfWeek.FRIDAY,
-  DayOfWeek.SATURDAY,
-] as const;
 
 export interface KitchenSettingsConfig {
   cutoffTime: string;
@@ -28,72 +19,32 @@ export class OrderCutoffService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly settingsService: SettingsService,
     @Optional() private readonly kitchenUnitService?: KitchenUnitService,
   ) {}
 
   /**
-   * Retrieves the dynamic kitchen settings from database or sensible defaults.
+   * Retrieves dynamic kitchen settings via SettingsService.
    */
   async getKitchenSettings(): Promise<KitchenSettingsConfig> {
-    const settings = await this.prisma.kitchenSetting.findMany({
-      where: {
-        key: {
-          in: [
-            'CUTOFF_TIME',
-            'CUTOFF_WORKING_DAYS',
-            'KITCHEN_WORKING_DAYS',
-            'KITCHEN_TIMEZONE',
-          ],
-        },
-      },
-    });
-
-    const settingsMap = new Map(settings.map((s) => [s.key, s.value]));
-
-    const cutoffTime = settingsMap.get('CUTOFF_TIME') || '16:00';
-    const cutoffWorkingDays = parseInt(
-      settingsMap.get('CUTOFF_WORKING_DAYS') || '2',
-      10,
-    );
-    const timezone =
-      settingsMap.get('KITCHEN_TIMEZONE') ||
-      process.env.KITCHEN_TIMEZONE ||
-      'UTC';
-
-    const workingDaysRaw = settingsMap.get('KITCHEN_WORKING_DAYS');
-    let kitchenWorkingDays: DayOfWeek[] = [
-      DayOfWeek.MONDAY,
-      DayOfWeek.TUESDAY,
-      DayOfWeek.WEDNESDAY,
-      DayOfWeek.THURSDAY,
-      DayOfWeek.FRIDAY,
-    ];
-
-    if (workingDaysRaw) {
-      const parsed = workingDaysRaw
-        .split(',')
-        .map((d) => d.trim().toUpperCase()) as DayOfWeek[];
-      if (parsed.length > 0) {
-        kitchenWorkingDays = parsed;
-      }
-    }
-
+    const s = await this.settingsService.getKitchenSettings();
     return {
-      cutoffTime,
-      cutoffWorkingDays,
-      kitchenWorkingDays,
-      timezone,
+      cutoffTime: s.cutOffTime,
+      cutoffWorkingDays: s.cutOffWorkingDays,
+      kitchenWorkingDays: s.workingDays,
+      timezone: s.timezone,
     };
   }
 
   /**
    * Calculates the exact cut-off DateTime for a given delivery date.
-   * Counts backwards N kitchen working days, skipping weekends and kitchen holidays.
+   * Counts backwards N kitchen working days using centralized isKitchenWorkingDay,
+   * skipping non-working weekdays and kitchen holidays.
    */
   async calculateCutoff(
     deliveryDate: Date | string,
   ): Promise<{ cutoffDateTime: Date; workingDaysCount: number }> {
-    const config = await this.getKitchenSettings();
+    const config = await this.settingsService.getKitchenSettings();
     const dateStr =
       typeof deliveryDate === 'string'
         ? deliveryDate.substring(0, 10)
@@ -102,38 +53,25 @@ export class OrderCutoffService {
     const [year, month, day] = dateStr.split('-').map(Number);
     let currentDate = new Date(Date.UTC(year, month - 1, day));
 
-    // Fetch all kitchen holidays to check during iteration
-    const holidays = await this.prisma.kitchenHoliday.findMany({
-      select: { date: true },
-    });
-    const holidayDateSet = new Set(
-      holidays.map((h) => h.date.toISOString().substring(0, 10)),
-    );
-
     let workingDaysFound = 0;
     const maxIterations = 30; // Safety guard against infinite loop
     let iteration = 0;
 
     // Step backwards day by day from deliveryDate - 1 day
     while (
-      workingDaysFound < config.cutoffWorkingDays &&
+      workingDaysFound < config.cutOffWorkingDays &&
       iteration < maxIterations
     ) {
       iteration++;
       // Move 1 day back
       currentDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
-      const curDateStr = currentDate.toISOString().substring(0, 10);
 
-      // Check day of week
-      const dowIndex = currentDate.getUTCDay();
-      const dow = DAY_OF_WEEK_MAP[dowIndex];
+      const isWorkingDay =
+        await this.settingsService.isKitchenWorkingDay(currentDate);
 
-      const isWorkingDay = config.kitchenWorkingDays.includes(dow);
-      const isHoliday = holidayDateSet.has(curDateStr);
-
-      if (isWorkingDay && !isHoliday) {
+      if (isWorkingDay) {
         workingDaysFound++;
-        if (workingDaysFound === config.cutoffWorkingDays) {
+        if (workingDaysFound === config.cutOffWorkingDays) {
           // This is the cutoff calendar date
           break;
         }
@@ -143,7 +81,7 @@ export class OrderCutoffService {
     const cutoffDateStr = currentDate.toISOString().substring(0, 10);
     const cutoffDateTime = this.constructDateTimeInTimezone(
       cutoffDateStr,
-      config.cutoffTime,
+      config.cutOffTime,
       config.timezone,
     );
 
@@ -172,7 +110,7 @@ export class OrderCutoffService {
     deliveryDate: Date | string,
     currentTime?: Date,
   ): Promise<CutoffCheckResult> {
-    const config = await this.getKitchenSettings();
+    const config = await this.settingsService.getKitchenSettings();
     const dateStr =
       typeof deliveryDate === 'string'
         ? deliveryDate.substring(0, 10)
@@ -186,9 +124,9 @@ export class OrderCutoffService {
       deliveryDate: dateStr,
       cutoffDateTime,
       isPastCutoff: isPast,
-      kitchenWorkingDays: config.kitchenWorkingDays,
-      workingDaysBeforeDelivery: config.cutoffWorkingDays,
-      cutoffTime: config.cutoffTime,
+      kitchenWorkingDays: config.workingDays,
+      workingDaysBeforeDelivery: config.cutOffWorkingDays,
+      cutoffTime: config.cutOffTime,
       timezone: config.timezone,
     };
   }

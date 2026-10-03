@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service.js';
 import { OrderStatus } from '../../generated/prisma/enums.js';
 import { Prisma } from '../../generated/prisma/client.js';
@@ -10,12 +10,14 @@ import {
 import { KitchenBoardQueryDto } from './dto/kitchen-board-query.dto.js';
 import { KitchenUnitService } from './kitchen-unit.service.js';
 import { DEFAULT_AT_RISK_THRESHOLD_MINUTES } from './utils/kitchen-time.utils.js';
+import { SettingsService } from '../settings/settings.service.js';
 
 @Injectable()
 export class KitchenBoardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly unitService: KitchenUnitService,
+    @Optional() private readonly settingsService?: SettingsService,
   ) {}
 
   /**
@@ -25,6 +27,13 @@ export class KitchenBoardService {
     timeZone: string;
     atRiskThresholdMinutes: number;
   }> {
+    if (this.settingsService) {
+      const timeZone = await this.settingsService.getKitchenTimezone();
+      const atRiskThresholdMinutes =
+        await this.settingsService.getAtRiskThresholdMinutes();
+      return { timeZone, atRiskThresholdMinutes };
+    }
+
     const settings = await this.prisma.kitchenSetting.findMany({
       where: {
         key: {

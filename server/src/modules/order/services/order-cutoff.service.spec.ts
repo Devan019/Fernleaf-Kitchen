@@ -1,23 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PrismaService } from '../../../common/prisma/prisma.service.js';
+import { DayOfWeek } from '../../../generated/prisma/enums.js';
 import { OrderCutoffService } from './order-cutoff.service.js';
 
 describe('OrderCutoffService', () => {
   let service: OrderCutoffService;
   let prismaMock: any;
+  let settingsServiceMock: any;
 
   beforeEach(() => {
     prismaMock = {
       kitchenSetting: {
-        findMany: vi.fn().mockResolvedValue([
-          { key: 'CUTOFF_TIME', value: '16:00' },
-          { key: 'CUTOFF_WORKING_DAYS', value: '2' },
-          {
-            key: 'KITCHEN_WORKING_DAYS',
-            value: 'MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY',
-          },
-          { key: 'KITCHEN_TIMEZONE', value: 'UTC' },
-        ]),
+        findMany: vi.fn(),
       },
       kitchenHoliday: {
         findMany: vi.fn().mockResolvedValue([]),
@@ -32,7 +26,42 @@ describe('OrderCutoffService', () => {
       $transaction: vi.fn(async (cb) => cb(prismaMock)),
     };
 
-    service = new OrderCutoffService(prismaMock as unknown as PrismaService);
+    settingsServiceMock = {
+      getKitchenSettings: vi.fn().mockResolvedValue({
+        workingDays: [
+          DayOfWeek.MONDAY,
+          DayOfWeek.TUESDAY,
+          DayOfWeek.WEDNESDAY,
+          DayOfWeek.THURSDAY,
+          DayOfWeek.FRIDAY,
+        ],
+        cutOffTime: '16:00',
+        cutOffWorkingDays: 2,
+        timezone: 'UTC',
+        holidays: [],
+        updatedAt: new Date(),
+      }),
+      isKitchenWorkingDay: vi.fn(async (date: Date | string) => {
+        const dateStr =
+          typeof date === 'string'
+            ? date.substring(0, 10)
+            : date.toISOString().substring(0, 10);
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const dateObj = new Date(Date.UTC(year, month - 1, day));
+        const dow = dateObj.getUTCDay();
+        if (dow === 0 || dow === 6) return false;
+        const holidays = await prismaMock.kitchenHoliday.findMany();
+        const isHoliday = holidays.some(
+          (h: any) => h.date.toISOString().substring(0, 10) === dateStr,
+        );
+        return !isHoliday;
+      }),
+    };
+
+    service = new OrderCutoffService(
+      prismaMock as unknown as PrismaService,
+      settingsServiceMock,
+    );
   });
 
   describe('calculateCutoff', () => {

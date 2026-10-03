@@ -5,6 +5,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../../common/prisma/prisma.service.js';
@@ -16,17 +17,24 @@ import {
 } from '../../generated/prisma/enums.js';
 import { MarkDeliveredDto } from './dto/mark-delivered.dto.js';
 import { calculateIsOnTime } from './utils/drop-grouping.utils.js';
+import { SettingsService } from '../settings/settings.service.js';
 
 @Injectable()
 export class DispatchStatusService {
   private readonly logger = new Logger(DispatchStatusService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly settingsService?: SettingsService,
+  ) {}
 
   /**
    * Helper to retrieve the centralized business timezone.
    */
   async getBusinessTimezone(): Promise<string> {
+    if (this.settingsService) {
+      return this.settingsService.getKitchenTimezone();
+    }
     const setting = await this.prisma.kitchenSetting.findUnique({
       where: { key: 'KITCHEN_TIMEZONE' },
     });
