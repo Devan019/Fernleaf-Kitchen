@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 import { AppModule } from '../src/app.module.js';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 const server = express();
 
@@ -14,6 +15,19 @@ async function bootstrap() {
       new ExpressAdapter(server),
     );
 
+    //swagger configuration 
+    const config = new DocumentBuilder()
+      .setTitle('Fernleaf Kitchen API')
+      .setDescription('API Documentation for Fernleaf Kitchen')
+      .setVersion('1.0')
+      .build();
+
+    //add swagger doc into our api app 
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+
+
+    //CORS
     app.enableCors({
       origin: process.env.CLIENT_URL,
       credentials: true,
