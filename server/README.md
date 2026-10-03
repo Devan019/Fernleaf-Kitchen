@@ -122,3 +122,38 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Billing Decisions
+
+### Who pays?
+The employee's company pays for confirmed orders. The company is the billing customer; employee payment is not supported. Billing company is derived from `order.companyId` to preserve historical integrity if an employee moves companies.
+
+### When is an order billable?
+When it becomes CONFIRMED. Delivery does not need to happen before invoicing.
+
+### Can an order be invoiced twice?
+No. A database unique constraint (`InvoiceLine.orderId` `@unique`) strictly prevents an order from belonging to more than one invoice.
+
+### Can orders change after invoicing?
+Yes. The operational order may still change according to existing Order and Admin override rules (e.g. cancellations, admin corrections, short deliveries).
+
+### What happens financially?
+Invoice lines are immutable financial snapshots storing the unit amount and line amount at invoicing time.
+Post-invoice financial differences are represented as explicit debit/credit adjustments (`BillingAdjustment`).
+Historical invoice lines and subtotals are never silently mutated.
+
+### What happens when an invoiced order is cancelled?
+A credit adjustment (`BillingAdjustmentType.CREDIT`) is created for the full invoiced amount with reason `ORDER_CANCELLED`. The original invoice line remains intact.
+
+### What happens when a delivered order is short?
+A credit adjustment (`BillingAdjustmentType.CREDIT`) is created equal to the difference between the invoiced amount and the final billable amount (e.g. 10 meals invoiced at $100, 8 meals delivered at $80 billable total -> $20 credit adjustment).
+
+### What happens when the final amount increases?
+A debit adjustment (`BillingAdjustmentType.DEBIT`) is created equal to the positive difference, increasing the net invoice total without overwriting the original line item.
+
+### What happens to paid invoices?
+The invoice remains in `PAID` status. Post-payment adjustments are recorded and tracked separately. No external refund or banking gateway integration is implemented.
+
+### Why?
+To preserve historical financial accuracy, maintain auditability and traceability, and avoid silently rewriting invoices.
+

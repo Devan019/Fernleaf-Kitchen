@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient, Prisma } from '../src/generated/prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { DishTemperature, PriceDerivationType, UserRole, DayOfWeek, OrderStatus } from '../src/generated/prisma/enums.js';
+import { DishTemperature, PriceDerivationType, UserRole, DayOfWeek, OrderStatus, InvoiceStatus, BillingAdjustmentType } from '../src/generated/prisma/enums.js';
 import { hashPassword } from '../src/common/utils/index.js';
 import { randomUUID } from 'node:crypto';
 
@@ -1687,6 +1687,178 @@ async function main() {
       }
     }
     console.log(`✓ Seeded ${ordersToSeed.length} Realistic Orders across statuses (DRAFT, PLACED, CONFIRMED, DELIVERED, CANCELLED, REJECTED)`);
+  }
+
+  console.log('\nSeeding Billing and Invoices...');
+  const billingGoogleComp = await prisma.company.findUnique({
+    where: { name: 'Google' },
+    include: {
+      employees: true,
+      deliveryAddresses: true,
+    },
+  });
+
+  const billingMsftComp = await prisma.company.findUnique({
+    where: { name: 'Microsoft' },
+    include: {
+      employees: true,
+      deliveryAddresses: true,
+    },
+  });
+
+  const anyDish = await prisma.dish.findFirst();
+
+  if (billingGoogleComp && billingMsftComp && anyDish && adminUser) {
+    const now = new Date();
+    const addrGoogle = billingGoogleComp.deliveryAddresses[0];
+
+    const ensureBillingOrder = async (
+      orderNumber: string,
+      company: typeof billingGoogleComp,
+      employee: (typeof billingGoogleComp)['employees'][0],
+      total: string,
+      isInvoiced: boolean,
+    ) => {
+      let order = await prisma.order.findUnique({
+        where: { orderNumber },
+      });
+      if (!order) {
+        const orderId = randomUUID();
+        order = await prisma.order.create({
+          data: {
+            id: orderId,
+            orderNumber,
+            employeeId: employee.id,
+            companyId: company.id,
+            deliveryDate: new Date('2026-10-15T00:00:00.000Z'),
+            deliveryTime: '12:30',
+            status: OrderStatus.CONFIRMED,
+            packagingType: 'ECO_BOX',
+            deliveryAddressId: addrGoogle ? addrGoogle.id : null,
+            deliveryStreet: addrGoogle ? addrGoogle.street : '100 Main St',
+            deliveryCity: addrGoogle ? addrGoogle.city : 'London',
+            deliveryPostcode: addrGoogle ? addrGoogle.postcode : 'EC1A 1BB',
+            subtotal: new Prisma.Decimal(total),
+            total: new Prisma.Decimal(total),
+            isInvoiced,
+            confirmedAt: now,
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        const lineId = randomUUID();
+        await prisma.orderLine.create({
+          data: {
+            id: lineId,
+            orderId,
+            dishId: anyDish.id,
+            dishNameSnapshot: anyDish.name,
+            dishSkuSnapshot: anyDish.sku,
+            unitPrice: new Prisma.Decimal(total),
+            quantity: 1,
+            lineTotal: new Prisma.Decimal(total),
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+      }
+      return order;
+    };
+
+    // 1. Company A (Google): Multiple confirmed uninvoiced orders
+    await ensureBillingOrder('SEED-BILL-GOOG-01', billingGoogleComp, billingGoogleComp.employees[0], '45.00', false);
+    await ensureBillingOrder('SEED-BILL-GOOG-02', billingGoogleComp, billingGoogleComp.employees[1] ?? billingGoogleComp.employees[0], '35.00', false);
+
+    // 2. Company A (Google): One open invoice with an adjustment ($100 subtotal, -$20 credit adjustment => $80 total)
+    const orderForOpenInvoice = await ensureBillingOrder(
+      'SEED-BILL-GOOG-03',
+      billingGoogleComp,
+      billingGoogleComp.employees[0],
+      '100.00',
+      true,
+    );
+
+    let openInvoice = await prisma.invoice.findUnique({
+      where: { invoiceNumber: 'INV-2026-000001' },
+    });
+
+    if (!openInvoice) {
+      await prisma.invoice.create({
+        data: {
+          id: randomUUID(),
+          invoiceNumber: 'INV-2026-000001',
+          companyId: billingGoogleComp.id,
+          status: InvoiceStatus.OPEN,
+          issuedAt: now,
+          subtotal: new Prisma.Decimal('100.00'),
+          adjustmentTotal: new Prisma.Decimal('-20.00'),
+          total: new Prisma.Decimal('80.00'),
+          lines: {
+            create: {
+              orderId: orderForOpenInvoice.id,
+              description: `Order ${orderForOpenInvoice.orderNumber}`,
+              quantity: 1,
+              unitAmount: new Prisma.Decimal('100.00'),
+              amount: new Prisma.Decimal('100.00'),
+            },
+          },
+          adjustments: {
+            create: {
+              orderId: orderForOpenInvoice.id,
+              type: BillingAdjustmentType.CREDIT,
+              amount: new Prisma.Decimal('20.00'),
+              reason: 'Short delivery of 2 meals',
+              createdByUserId: adminUser.id,
+            },
+          },
+        },
+      });
+    }
+
+    // 3. Company A (Google): One paid invoice
+    const orderForPaidInvoice = await ensureBillingOrder(
+      'SEED-BILL-GOOG-04',
+      billingGoogleComp,
+      billingGoogleComp.employees[1] ?? billingGoogleComp.employees[0],
+      '60.00',
+      true,
+    );
+
+    let paidInvoice = await prisma.invoice.findUnique({
+      where: { invoiceNumber: 'INV-2026-000002' },
+    });
+
+    if (!paidInvoice) {
+      await prisma.invoice.create({
+        data: {
+          id: randomUUID(),
+          invoiceNumber: 'INV-2026-000002',
+          companyId: billingGoogleComp.id,
+          status: InvoiceStatus.PAID,
+          issuedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          paidAt: now,
+          subtotal: new Prisma.Decimal('60.00'),
+          adjustmentTotal: new Prisma.Decimal('0.00'),
+          total: new Prisma.Decimal('60.00'),
+          lines: {
+            create: {
+              orderId: orderForPaidInvoice.id,
+              description: `Order ${orderForPaidInvoice.orderNumber}`,
+              quantity: 1,
+              unitAmount: new Prisma.Decimal('60.00'),
+              amount: new Prisma.Decimal('60.00'),
+            },
+          },
+        },
+      });
+    }
+
+    // 4. Company B (Microsoft): Confirmed uninvoiced orders
+    await ensureBillingOrder('SEED-BILL-MSFT-01', billingMsftComp, billingMsftComp.employees[0], '55.00', false);
+    await ensureBillingOrder('SEED-BILL-MSFT-02', billingMsftComp, billingMsftComp.employees[0], '40.00', false);
+
+    console.log('✓ Seeded realistic Billing Invoices, Adjustments, and Uninvoiced Orders');
   }
 
   console.log('\nDatabase seed finished successfully and idempotently.');

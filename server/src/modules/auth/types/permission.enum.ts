@@ -64,4 +64,12 @@ export enum Permission {
   ORDER_CANCEL = 'order:cancel',
   ORDER_OVERRIDE = 'order:override',
   ORDER_CUTOFF_PROCESS = 'order:cutoff_process',
+
+  // Billing operations
+  BILLING_READ = 'billing:read',
+  BILLING_CREATE = 'billing:create',
+  BILLING_UPDATE = 'billing:update',
+  BILLING_PAY = 'billing:pay',
+  BILLING_ADJUST = 'billing:adjust',
 }
+

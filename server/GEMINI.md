@@ -135,3 +135,16 @@ Required variables (see `.env.example`):
 - **Input Validation**: All incoming payloads must use DTO classes decorated with `class-validator` rules.
 - **Prisma Error Handling**: Guard database exceptions with `isPrismaError(error, 'P2002')` (unique constraint) or `isPrismaError(error, 'P2025')` (record not found) and rethrow appropriate NestJS HTTP exceptions.
 - **Authentication Safety**: Generic error responses for login failures (`Invalid email or password`), never return password hashes, use HTTP-only cookies, and enforce authorization server-side.
+
+## Billing Architecture
+- **Billable Orders**: An order becomes billable when it enters `CONFIRMED` status. Invoicing does not require prior delivery.
+- **Company Ownership**: Billing customer is strictly the company (`Order.companyId`). If an employee changes companies later, old orders remain billed to their historical company. Employee payment is not supported.
+- **Internal Records**: Invoices (`Invoice`, `InvoiceLine`) are internal accounting snapshots with no external third-party payment gateway or tax integrations.
+- **Financial Snapshots**: `InvoiceLine` stores the immutable financial amount and unit price at invoicing time. Billing uses the Order's final stored financial amount and never reprices historical orders.
+- **Order Uniqueness Constraint**: An order can belong to at most one invoice. Enforced via database unique constraint on `InvoiceLine.orderId` (`@unique`).
+- **Post-Invoice Changes & Adjustments**: Changes after invoicing (admin overrides, cancellations, short deliveries) never mutate historical invoice lines. Instead, explicit `BillingAdjustment` records (DEBIT or CREDIT) are created, preserving traceability and audit history.
+- **Unique Human-Readable Numbers**: Invoices use sequential, human-readable numbers (`INV-YYYY-XXXXXX`) generated server-side.
+- **Mandatory Decimal Money**: All financial fields, totals, and adjustments use high-precision `Prisma.Decimal` (`@db.Decimal(12, 2)`). Floating-point arithmetic is forbidden.
+- **Transactional Consistency**: Invoice creation, payment updates, and adjustment additions execute inside serializable/isolated Prisma transactions.
+- **Paid Invoice Immutability**: Paid invoices remain historical financial records (`status: PAID`). Post-payment adjustments update net invoice balances without altering PAID status.
+

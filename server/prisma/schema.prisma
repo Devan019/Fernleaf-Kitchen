@@ -23,6 +23,7 @@ model User {
   kitchenUnitsCompleted  KitchenUnit[]        @relation("KitchenUnitCompletedBy")
   driverDrops            DeliveryDrop[]       @relation("DriverDrops")
   dropStatusChanges      DropStatusHistory[]
+  billingAdjustments     BillingAdjustment[]
 }
 
 model Dish {
@@ -246,6 +247,7 @@ model Company {
   employees                  Employee[]              @relation("CompanyEmployees")
   Order                      Order[]
   deliveryDrops              DeliveryDrop[]
+  invoices                   Invoice[]
 
   @@index([name])
   @@index([isActive])
@@ -460,6 +462,8 @@ model Order {
   OrderStatusHistory     OrderStatusHistory[]
   kitchenUnits           KitchenUnit[]
   deliveryDrop           DeliveryDrop?        @relation(fields: [dropId], references: [id], onDelete: SetNull)
+  invoiceLine            InvoiceLine?
+  billingAdjustments     BillingAdjustment[]
 
   @@index([companyId])
   @@index([createdAt])
@@ -682,4 +686,72 @@ model DropStatusHistory {
   @@index([dropId])
   @@index([createdAt])
 }
+
+enum InvoiceStatus {
+  OPEN
+  PAID
+  VOID
+}
+
+enum BillingAdjustmentType {
+  DEBIT
+  CREDIT
+}
+
+model Invoice {
+  id              String              @id @default(cuid())
+  invoiceNumber   String              @unique
+  companyId       String
+  status          InvoiceStatus       @default(OPEN)
+  issuedAt        DateTime            @default(now())
+  paidAt          DateTime?
+  subtotal        Decimal             @db.Decimal(12, 2)
+  adjustmentTotal Decimal             @default(0) @db.Decimal(12, 2)
+  total           Decimal             @db.Decimal(12, 2)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  company         Company             @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  lines           InvoiceLine[]
+  adjustments     BillingAdjustment[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([issuedAt])
+}
+
+model InvoiceLine {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  orderId     String   @unique
+  description String
+  quantity    Int      @default(1)
+  unitAmount  Decimal  @db.Decimal(12, 2)
+  amount      Decimal  @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+}
+
+model BillingAdjustment {
+  id              String                @id @default(cuid())
+  invoiceId       String
+  orderId         String
+  type            BillingAdjustmentType
+  amount          Decimal               @db.Decimal(12, 2)
+  reason          String
+  createdByUserId String?
+  createdAt       DateTime              @default(now())
+
+  invoice         Invoice               @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  order           Order                 @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  createdByUser   User?                 @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+  @@index([orderId])
+}
+
 

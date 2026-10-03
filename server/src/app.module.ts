@@ -14,6 +14,7 @@ import { EmployeesModule } from './modules/employee/employee.module.js';
 import { OrderModule } from './modules/order/order.module.js';
 import { KitchenModule } from './modules/kitchen/kitchen.module.js';
 import { DispatchModule } from './modules/dispatch/dispatch.module.js';
+import { BillingModule } from './modules/billing/billing.module.js';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DispatchModule } from './modules/dispatch/dispatch.module.js';
     OrderModule,
     KitchenModule,
     DispatchModule,
+    BillingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
