@@ -55,6 +55,7 @@ model Dish {
   optionGroups        OptionGroup[]
   categoryDishes      CategoryDish[]
   companyHiddenDishes CompanyHiddenDish[]
+  dishPrices          DishPrice[]
 
   @@index([name])
   @@index([sku])
@@ -74,6 +75,7 @@ model Option {
   dietaryTags        DietaryTag[]
   optionGroupOptions OptionGroupOption[]
   optionPortions     OptionPortion[]
+  optionPrices       OptionPrice[]
 
   @@index([name])
   @@index([isActive])
@@ -239,9 +241,12 @@ model Company {
   employees               Employee[]
   companyHiddenCategories CompanyHiddenCategory[]
   companyHiddenDishes     CompanyHiddenDish[]
+  priceTierId             String?
+  priceTier               PriceTier?              @relation(fields: [priceTierId], references: [id], onDelete: SetNull)
 
   @@index([name])
   @@index([isActive])
+  @@index([priceTierId])
 }
 
 model Employee {
@@ -283,3 +288,65 @@ model CompanyHiddenDish {
   @@index([companyId])
   @@index([dishId])
 }
+
+enum PriceDerivationType {
+  MANUAL
+  COST_MULTIPLIER
+  TIER_PERCENTAGE
+}
+
+model PriceTier {
+  id             String              @id @default(cuid())
+  name           String              @unique
+  description    String?
+  derivationType PriceDerivationType
+  baseTierId     String?
+  baseTier       PriceTier?          @relation("TierHierarchy", fields: [baseTierId], references: [id], onDelete: Restrict)
+  derivedTiers   PriceTier[]         @relation("TierHierarchy")
+  multiplier     Decimal?            @db.Decimal(10, 4)
+  percentage     Decimal?            @db.Decimal(10, 2)
+  isDefault      Boolean             @default(false)
+  isActive       Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  dishPrices   DishPrice[]
+  optionPrices OptionPrice[]
+  companies    Company[]
+
+  @@index([name])
+  @@index([isDefault])
+  @@index([isActive])
+  @@index([baseTierId])
+}
+
+model DishPrice {
+  id        String    @id @default(cuid())
+  tierId    String
+  priceTier PriceTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+  dishId    String
+  dish      Dish      @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  price     Decimal   @db.Decimal(10, 2)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([tierId, dishId])
+  @@index([tierId])
+  @@index([dishId])
+}
+
+model OptionPrice {
+  id        String    @id @default(cuid())
+  tierId    String
+  priceTier PriceTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+  optionId  String
+  option    Option    @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  price     Decimal   @db.Decimal(10, 2)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([tierId, optionId])
+  @@index([tierId])
+  @@index([optionId])
+}
+

@@ -37,4 +37,10 @@ export enum Permission {
   MENU_DELETE = 'menu:delete',
   MENU_MANAGE_VISIBILITY = 'menu:manage_visibility',
   MENU_PREVIEW = 'menu:preview',
+
+  // Pricing operations
+  PRICING_READ = 'pricing:read',
+  PRICING_CREATE = 'pricing:create',
+  PRICING_UPDATE = 'pricing:update',
+  PRICING_DELETE = 'pricing:delete',
 }

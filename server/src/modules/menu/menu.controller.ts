@@ -50,7 +50,7 @@ export class MenuController {
   // Customer Employee Menu Endpoints (Unauthenticated - Customer Employees have no login accounts)
   // ----------------------------------------------------
 
-  @Get(['employees/:employeeId'])
+  @Get(['employees/:employeeId', 'employee/:employeeId'])
   @ApiOperation({
     summary:
       'Get effective menu for a customer employee (Customer employees do not have login accounts)',
@@ -74,9 +74,7 @@ export class MenuController {
     return this.menuService.getEffectiveMenuForEmployee(employeeId);
   }
 
-  @Get([
-    'employees/:employeeId/categories/:categoryId',
-  ])
+  @Get(['employees/:employeeId/categories/:categoryId'])
   @ApiOperation({
     summary:
       'Directly access a category for a customer employee (e.g. secret category accessed via direct link)',

@@ -5,12 +5,11 @@ import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
 import { PrismaService } from '../src/common/prisma/prisma.service.js';
-import { PricingIntegrationService } from '../src/modules/menu/pricing/pricing-integration.service.js';
+import { Prisma } from '../src/generated/prisma/client.js';
 
 describe('Menu Module (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
-  let pricingService: PricingIntegrationService;
 
   let adminCookie: string[];
   let kitchenCookie: string[];
@@ -45,9 +44,6 @@ describe('Menu Module (e2e)', () => {
 
     await app.init();
     prisma = app.get<PrismaService>(PrismaService);
-    pricingService = app.get<PricingIntegrationService>(
-      PricingIntegrationService,
-    );
 
     // Login Admin
     const adminLogin = await request(app.getHttpServer())
@@ -104,10 +100,6 @@ describe('Menu Module (e2e)', () => {
     });
     paneerDishId = paneer!.id;
     brownieDishId = brownie!.id;
-
-    // Ensure pricing registry has prices for seeded dishes
-    pricingService.setDishPrice(paneerDishId, '9.50');
-    pricingService.setDishPrice(brownieDishId, '4.50');
   });
 
   afterAll(async () => {
@@ -434,11 +426,22 @@ describe('Menu Module (e2e)', () => {
     });
 
     it('Excludes dishes with missing prices', async () => {
-      // Temporarily remove price for Paneer dish for Charlie
-      pricingService.setDishPrice(paneerDishId, null, charlieEmployeeId);
+      const standardTier = await prisma.priceTier.findFirst({
+        where: { isDefault: true },
+      });
+
+      // Temporarily remove price for Paneer dish from Standard tier
+      await prisma.dishPrice.delete({
+        where: {
+          tierId_dishId: {
+            tierId: standardTier!.id,
+            dishId: paneerDishId,
+          },
+        },
+      });
 
       const res = await request(app.getHttpServer())
-        .get(`/menu/preview/employees/${charlieEmployeeId}`)
+        .get(`/menu/preview/employees/${aliceEmployeeId}`)
         .set('Cookie', adminCookie)
         .expect(200);
 
@@ -450,8 +453,14 @@ describe('Menu Module (e2e)', () => {
         expect(dishIds).not.toContain(paneerDishId);
       }
 
-      // Restore price
-      pricingService.setDishPrice(paneerDishId, '9.50', charlieEmployeeId);
+      // Restore price for Paneer dish on Standard tier
+      await prisma.dishPrice.create({
+        data: {
+          tierId: standardTier!.id,
+          dishId: paneerDishId,
+          price: new Prisma.Decimal('10.00'),
+        },
+      });
     });
 
     it('Secret category is accessible via direct access endpoint', async () => {

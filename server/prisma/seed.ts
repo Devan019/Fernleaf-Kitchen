@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient, Prisma } from '../src/generated/prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { DishTemperature, UserRole } from '../src/generated/prisma/enums.js';
+import { DishTemperature, PriceDerivationType, UserRole } from '../src/generated/prisma/enums.js';
 import { hashPassword } from '../src/common/utils/index.js';
 
 const adapter = new PrismaPg({
@@ -647,6 +647,220 @@ async function main() {
       `✓ Seeded: Hidden Dish 'Chocolate Brownie' for Company 'Globex Inc'`,
     );
   }
+
+  // 10. Pricing Tiers, Dish Prices, Option Prices & Company Assignments
+  console.log('\nSeeding Pricing Tiers, Dish & Option Prices...');
+
+  // 10.1 Standard Tier (MANUAL, Default)
+  const standardTier = await prisma.priceTier.upsert({
+    where: { name: 'Standard' },
+    update: {
+      description: 'Standard base manual pricing tier',
+      derivationType: PriceDerivationType.MANUAL,
+      isDefault: true,
+      isActive: true,
+      baseTierId: null,
+      multiplier: null,
+      percentage: null,
+    },
+    create: {
+      name: 'Standard',
+      description: 'Standard base manual pricing tier',
+      derivationType: PriceDerivationType.MANUAL,
+      isDefault: true,
+      isActive: true,
+    },
+  });
+  console.log(`✓ Seeded Price Tier: Standard (Default, MANUAL)`);
+
+  // 10.2 Enterprise Tier (TIER_PERCENTAGE: Standard + 15%)
+  const enterpriseTier = await prisma.priceTier.upsert({
+    where: { name: 'Enterprise' },
+    update: {
+      description: 'Enterprise pricing tier with 15% markup over standard pricing',
+      derivationType: PriceDerivationType.TIER_PERCENTAGE,
+      baseTierId: standardTier.id,
+      percentage: new Prisma.Decimal('15.00'),
+      multiplier: null,
+      isDefault: false,
+      isActive: true,
+    },
+    create: {
+      name: 'Enterprise',
+      description: 'Enterprise pricing tier with 15% markup over standard pricing',
+      derivationType: PriceDerivationType.TIER_PERCENTAGE,
+      baseTierId: standardTier.id,
+      percentage: new Prisma.Decimal('15.00'),
+      isDefault: false,
+      isActive: true,
+    },
+  });
+  console.log(`✓ Seeded Price Tier: Enterprise (+15% of Standard)`);
+
+  // 10.3 Partner Tier (COST_MULTIPLIER: cost x 2.4)
+  const partnerTier = await prisma.priceTier.upsert({
+    where: { name: 'Partner' },
+    update: {
+      description: 'Partner tier derived from dish/option cost x 2.4',
+      derivationType: PriceDerivationType.COST_MULTIPLIER,
+      multiplier: new Prisma.Decimal('2.4000'),
+      baseTierId: null,
+      percentage: null,
+      isDefault: false,
+      isActive: true,
+    },
+    create: {
+      name: 'Partner',
+      description: 'Partner tier derived from dish/option cost x 2.4',
+      derivationType: PriceDerivationType.COST_MULTIPLIER,
+      multiplier: new Prisma.Decimal('2.4000'),
+      isDefault: false,
+      isActive: true,
+    },
+  });
+  console.log(`✓ Seeded Price Tier: Partner (Cost x 2.4)`);
+
+  // Standard Dish Prices (Manual)
+  // Intentionally omitting DISH-VEG-001 so missing-price behavior can be demonstrated!
+  const standardDishPrices: Record<string, string> = {
+    'DISH-PNR-001': '10.00',
+    'DISH-TOFU-001': '9.50',
+    'DISH-CHK-001': '11.50',
+    'DISH-BRW-001': '4.50',
+  };
+
+  for (const [sku, price] of Object.entries(standardDishPrices)) {
+    const dish = await prisma.dish.findUnique({ where: { sku } });
+    if (dish) {
+      await prisma.dishPrice.upsert({
+        where: {
+          tierId_dishId: {
+            tierId: standardTier.id,
+            dishId: dish.id,
+          },
+        },
+        update: { price: new Prisma.Decimal(price) },
+        create: {
+          tierId: standardTier.id,
+          dishId: dish.id,
+          price: new Prisma.Decimal(price),
+        },
+      });
+    }
+  }
+  console.log(`✓ Seeded Standard manual dish prices (Vegetable Breakfast Bowl left unpriced)`);
+
+  // Standard Option Prices (Manual)
+  const standardOptionPrices: Record<string, string> = {
+    'Paneer': '3.50',
+    'Tofu': '3.00',
+    'Chicken': '4.00',
+    'Brown Rice': '2.00',
+    'Jeera Rice': '1.80',
+    'Raita': '1.50',
+    'Mint Chutney': '1.00',
+  };
+
+  for (const [name, price] of Object.entries(standardOptionPrices)) {
+    const opt = seededOptions[name];
+    if (opt) {
+      await prisma.optionPrice.upsert({
+        where: {
+          tierId_optionId: {
+            tierId: standardTier.id,
+            optionId: opt.id,
+          },
+        },
+        update: { price: new Prisma.Decimal(price) },
+        create: {
+          tierId: standardTier.id,
+          optionId: opt.id,
+          price: new Prisma.Decimal(price),
+        },
+      });
+    }
+  }
+  console.log(`✓ Seeded Standard manual option prices`);
+
+  // Enterprise Overrides
+  // Standard Paneer is 10.00 -> 15% is 11.50. Override to 12.25:
+  const pnrDish = await prisma.dish.findUnique({ where: { sku: 'DISH-PNR-001' } });
+  if (pnrDish) {
+    await prisma.dishPrice.upsert({
+      where: {
+        tierId_dishId: {
+          tierId: enterpriseTier.id,
+          dishId: pnrDish.id,
+        },
+      },
+      update: { price: new Prisma.Decimal('12.25') },
+      create: {
+        tierId: enterpriseTier.id,
+        dishId: pnrDish.id,
+        price: new Prisma.Decimal('12.25'),
+      },
+    });
+  }
+  // Standard Chicken is 11.50 -> 15% is 13.25. Override to 14.50:
+  const chkDish = await prisma.dish.findUnique({ where: { sku: 'DISH-CHK-001' } });
+  if (chkDish) {
+    await prisma.dishPrice.upsert({
+      where: {
+        tierId_dishId: {
+          tierId: enterpriseTier.id,
+          dishId: chkDish.id,
+        },
+      },
+      update: { price: new Prisma.Decimal('14.50') },
+      create: {
+        tierId: enterpriseTier.id,
+        dishId: chkDish.id,
+        price: new Prisma.Decimal('14.50'),
+      },
+    });
+  }
+  console.log(`✓ Seeded Enterprise individual dish overrides (Paneer Bowl @ 12.25, Chicken Bowl @ 14.50)`);
+
+  // Partner Overrides
+  // Partner Brownie cost is 2.20 * 2.4 = 5.28 -> rounds up to 5.30. Override to 5.00:
+  const brwDish = await prisma.dish.findUnique({ where: { sku: 'DISH-BRW-001' } });
+  if (brwDish) {
+    await prisma.dishPrice.upsert({
+      where: {
+        tierId_dishId: {
+          tierId: partnerTier.id,
+          dishId: brwDish.id,
+        },
+      },
+      update: { price: new Prisma.Decimal('5.00') },
+      create: {
+        tierId: partnerTier.id,
+        dishId: brwDish.id,
+        price: new Prisma.Decimal('5.00'),
+      },
+    });
+  }
+  console.log(`✓ Seeded Partner individual dish overrides (Brownie @ 5.00)`);
+
+  // Assign Companies to Price Tiers
+  // Acme Corp -> null priceTierId (uses Default Standard Tier)
+  // Globex Inc -> Enterprise Tier
+  // Initech LLC -> Partner Tier
+  await prisma.company.update({
+    where: { name: 'Acme Corp' },
+    data: { priceTierId: null },
+  });
+
+  await prisma.company.update({
+    where: { name: 'Globex Inc' },
+    data: { priceTierId: enterpriseTier.id },
+  });
+
+  await prisma.company.update({
+    where: { name: 'Initech LLC' },
+    data: { priceTierId: partnerTier.id },
+  });
+  console.log(`✓ Assigned Companies to Price Tiers: Acme (Default), Globex (Enterprise), Initech (Partner)`);
 
   console.log('\nDatabase seed finished successfully and idempotently.');
 }

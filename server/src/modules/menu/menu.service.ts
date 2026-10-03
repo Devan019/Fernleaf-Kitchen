@@ -11,7 +11,7 @@ import {
   calculatePagination,
   createPaginatedResponse,
 } from '../../common/utils/pagination/pagination.js';
-import { PricingIntegrationService } from './pricing/pricing-integration.service.js';
+import { PricingService } from '../pricing/pricing.service.js';
 import {
   AddDishToCategoryDto,
   CategoryQueryDto,
@@ -35,7 +35,7 @@ import {
 export class MenuService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly pricingService: PricingIntegrationService,
+    private readonly pricingService: PricingService,
   ) {}
 
   // ----------------------------------------------------

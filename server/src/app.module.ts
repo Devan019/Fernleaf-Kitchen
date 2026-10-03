@@ -8,6 +8,7 @@ import { UserModule } from './modules/user/user.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { CatalogueModule } from './modules/catalogue/catalogue.module.js';
 import { MenuModule } from './modules/menu/menu.module.js';
+import { PricingModule } from './modules/pricing/pricing.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { MenuModule } from './modules/menu/menu.module.js';
     AuthModule,
     CatalogueModule,
     MenuModule,
+    PricingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -7,12 +7,12 @@ import {
 } from '@nestjs/common';
 import { MenuService } from './menu.service.js';
 import { PrismaService } from '../../common/prisma/prisma.service.js';
-import { PricingIntegrationService } from './pricing/pricing-integration.service.js';
+import { PricingService } from '../pricing/pricing.service.js';
 import { DishTemperature } from '../../generated/prisma/enums.js';
 
 describe('MenuService', () => {
   let service: MenuService;
-  let pricingService: PricingIntegrationService;
+  let pricingService: any;
 
   let prismaMock: {
     menuCategory: {
@@ -100,7 +100,30 @@ describe('MenuService', () => {
       }),
     };
 
-    pricingService = new PricingIntegrationService();
+    const mockPrices = new Map<string, string | null>();
+    pricingService = {
+      getEffectiveDishPrices: vi
+        .fn()
+        .mockImplementation(async (empId: string, dishIds: string[]) => {
+          const result = new Map<string, string | null>();
+          for (const dishId of dishIds) {
+            const empKey = `${empId}:${dishId}`;
+            const generalKey = `dish:${dishId}`;
+            if (mockPrices.has(empKey)) {
+              result.set(dishId, mockPrices.get(empKey) ?? null);
+            } else if (mockPrices.has(generalKey)) {
+              result.set(dishId, mockPrices.get(generalKey) ?? null);
+            } else {
+              result.set(dishId, null);
+            }
+          }
+          return result;
+        }),
+      setDishPrice: (dishId: string, price: string | null, empId?: string) => {
+        const key = empId ? `${empId}:${dishId}` : `dish:${dishId}`;
+        mockPrices.set(key, price);
+      },
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -110,7 +133,7 @@ describe('MenuService', () => {
           useValue: prismaMock,
         },
         {
-          provide: PricingIntegrationService,
+          provide: PricingService,
           useValue: pricingService,
         },
       ],
