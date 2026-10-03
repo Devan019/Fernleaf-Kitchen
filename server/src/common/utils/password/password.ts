@@ -17,6 +17,9 @@ export async function hashPassword(password: string): Promise<string> {
  * @param plain - Plaintext password to verify
  * @returns Promise resolving to true if valid, false otherwise
  */
-export async function verifyPassword(hash: string, plain: string): Promise<boolean> {
+export async function verifyPassword(
+  hash: string,
+  plain: string,
+): Promise<boolean> {
   return argon2.verify(hash, plain);
 }

@@ -16,7 +16,6 @@ export function isPrismaError(
   code: string,
 ): error is Prisma.PrismaClientKnownRequestError {
   return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === code
+    error instanceof Prisma.PrismaClientKnownRequestError && error.code === code
   );
 }

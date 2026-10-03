@@ -1,5 +1,8 @@
 import { UserRole } from '../../../generated/prisma/enums.js';
-import { PaginatedResult, PaginationMeta } from '../../../common/utils/index.js';
+import {
+  PaginatedResult,
+  PaginationMeta,
+} from '../../../common/utils/index.js';
 
 export interface UserResponse {
   id: string;

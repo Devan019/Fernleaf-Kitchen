@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  calculatePagination,
-  createPaginatedResponse,
-} from './pagination.js';
+import { calculatePagination, createPaginatedResponse } from './pagination.js';
 
 describe('pagination utility', () => {
   describe('calculatePagination', () => {

@@ -10,7 +10,7 @@ import {
   hashPassword,
   isPrismaError,
 } from '../../common/utils/index.js';
-import { Prisma } from '../../generated/prisma/client.js';
+import { Prisma, type User } from '../../generated/prisma/client.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import {
@@ -49,7 +49,9 @@ export class UserService {
       });
     } catch (error) {
       if (isPrismaError(error, 'P2002')) {
-        throw new ConflictException(`User with email '${createUserDto.email}' already exists`);
+        throw new ConflictException(
+          `User with email '${createUserDto.email}' already exists`,
+        );
       }
       throw error;
     }
@@ -59,7 +61,10 @@ export class UserService {
    * Find paginated users with server-side pagination.
    */
   async findAll(page = 1, limit = 20): Promise<PaginatedUsersResponse> {
-    const { skip, take, safePage, safeLimit } = calculatePagination(page, limit);
+    const { skip, take, safePage, safeLimit } = calculatePagination(
+      page,
+      limit,
+    );
 
     const [total, data] = await Promise.all([
       this.prisma.user.count(),
@@ -91,9 +96,22 @@ export class UserService {
   }
 
   /**
+   * Find a user by email, returning the database record including passwordHash.
+   * Internal method intended for authentication verification.
+   */
+  async findByEmail(email: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
+  }
+
+  /**
    * Update an existing user.
    */
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponse> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserResponse> {
     const updateData: Prisma.UserUpdateInput = {};
 
     if (updateUserDto.name !== undefined) {

@@ -1,10 +1,14 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module.js';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Cookie parser
+  app.use(cookieParser());
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -20,9 +24,11 @@ async function bootstrap() {
     .setTitle('Fernleaf Kitchen API')
     .setDescription('API Documentation for Fernleaf Kitchen')
     .setVersion('1.0')
+    .addBearerAuth()
+    .addCookieAuth('token')
     .build();
 
-  // Add swagger doc into our api app 
+  // Add swagger doc into our api app
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, {
     customCssUrl: [

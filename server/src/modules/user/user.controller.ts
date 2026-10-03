@@ -10,12 +10,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
@@ -42,8 +37,14 @@ export class UserController {
 
   @Get()
   @ApiOperation({ summary: 'Get paginated list of staff users' })
-  @ApiResponse({ status: 200, description: 'List of users with pagination metadata.' })
-  @ApiResponse({ status: 400, description: 'Invalid pagination query parameters.' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users with pagination metadata.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid pagination query parameters.',
+  })
   findAll(
     @Query() paginationQuery: PaginationQueryDto,
   ): Promise<PaginatedUsersResponse> {

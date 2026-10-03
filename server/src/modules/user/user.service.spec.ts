@@ -72,8 +72,12 @@ describe('UserService', () => {
       const result = await service.create(dto);
 
       expect(result).toEqual(mockSafeUser);
-      expect((result as unknown as Record<string, unknown>).password).toBeUndefined();
-      expect((result as unknown as Record<string, unknown>).passwordHash).toBeUndefined();
+      expect(
+        (result as unknown as Record<string, unknown>).password,
+      ).toBeUndefined();
+      expect(
+        (result as unknown as Record<string, unknown>).passwordHash,
+      ).toBeUndefined();
     });
 
     it('hashes the password before storing in database and never stores plaintext', async () => {
@@ -106,7 +110,10 @@ describe('UserService', () => {
       expect(callArgs.data.passwordHash.startsWith('$argon2')).toBe(true);
 
       // Verify argon2 hash matches plaintext
-      const isMatch = await argon2.verify(callArgs.data.passwordHash, plaintextPassword);
+      const isMatch = await argon2.verify(
+        callArgs.data.passwordHash,
+        plaintextPassword,
+      );
       expect(isMatch).toBe(true);
     });
 
@@ -153,7 +160,9 @@ describe('UserService', () => {
         },
       });
 
-      expect((result.data[0] as unknown as Record<string, unknown>).passwordHash).toBeUndefined();
+      expect(
+        (result.data[0] as unknown as Record<string, unknown>).passwordHash,
+      ).toBeUndefined();
     });
 
     it('handles default pagination when no params are given', async () => {
@@ -188,13 +197,17 @@ describe('UserService', () => {
         select: expect.any(Object),
       });
       expect(result).toEqual(mockSafeUser);
-      expect((result as unknown as Record<string, unknown>).passwordHash).toBeUndefined();
+      expect(
+        (result as unknown as Record<string, unknown>).passwordHash,
+      ).toBeUndefined();
     });
 
     it('throws NotFoundException (404) if user does not exist', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('non-existent-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('non-existent-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -218,7 +231,9 @@ describe('UserService', () => {
         select: expect.any(Object),
       });
       expect(result).toEqual(updatedUser);
-      expect((result as unknown as Record<string, unknown>).passwordHash).toBeUndefined();
+      expect(
+        (result as unknown as Record<string, unknown>).passwordHash,
+      ).toBeUndefined();
     });
 
     it('updates email and isActive status', async () => {
@@ -278,10 +293,13 @@ describe('UserService', () => {
 
     it('throws NotFoundException (404) if user to update does not exist', async () => {
       prisma.user.update.mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('Record to update not found.', {
-          code: 'P2025',
-          clientVersion: '7.10.0',
-        }),
+        new Prisma.PrismaClientKnownRequestError(
+          'Record to update not found.',
+          {
+            code: 'P2025',
+            clientVersion: '7.10.0',
+          },
+        ),
       );
 
       await expect(
@@ -311,18 +329,25 @@ describe('UserService', () => {
       // Physical delete must never be invoked
       expect(prisma.user.delete).not.toHaveBeenCalled();
       expect(result.isActive).toBe(false);
-      expect((result as unknown as Record<string, unknown>).passwordHash).toBeUndefined();
+      expect(
+        (result as unknown as Record<string, unknown>).passwordHash,
+      ).toBeUndefined();
     });
 
     it('throws NotFoundException (404) if user to deactivate does not exist', async () => {
       prisma.user.update.mockRejectedValue(
-        new Prisma.PrismaClientKnownRequestError('Record to update not found.', {
-          code: 'P2025',
-          clientVersion: '7.10.0',
-        }),
+        new Prisma.PrismaClientKnownRequestError(
+          'Record to update not found.',
+          {
+            code: 'P2025',
+            clientVersion: '7.10.0',
+          },
+        ),
       );
 
-      await expect(service.remove('non-existent-id')).rejects.toThrow(NotFoundException);
+      await expect(service.remove('non-existent-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });
