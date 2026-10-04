@@ -48,7 +48,7 @@ export default function MyDeliveriesPage() {
   return (
     <ProtectedRoute requiredRole={["DRIVER", "ADMIN"]}>
       <Header title="My Deliveries" />
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 max-w-4xl mx-auto">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 ">
         {/* Driver Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#eae5d8]">
           <div>
@@ -295,6 +295,7 @@ export default function MyDeliveriesPage() {
           open={Boolean(inspectingDropId)}
           onClose={() => setInspectingDropId(null)}
           dropId={inspectingDropId}
+          isDriver={true}
         />
       )}
     </ProtectedRoute>

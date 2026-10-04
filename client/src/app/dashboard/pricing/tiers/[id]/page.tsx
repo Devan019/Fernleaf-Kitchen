@@ -180,7 +180,7 @@ export default function TierDetailPage() {
   return (
     <ProtectedRoute requiredRole={["ADMIN"]}>
       <Header title="Tier Price Matrix" />
-      <main className="flex-1 overflow-y-auto p-6 md:p-8">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
         {/* Back breadcrumb */}
         <div className="mb-4">
           <Link

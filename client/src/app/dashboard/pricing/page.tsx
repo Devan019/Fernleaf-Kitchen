@@ -145,7 +145,7 @@ export default function PricingPage() {
   return (
     <ProtectedRoute requiredRole={["ADMIN"]}>
       <Header title="Pricing" />
-      <main className="flex-1 overflow-y-auto p-6 md:p-8">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
         <PageHeader
           title="Customer Price Tiers & Rules"
           description="Manage contract pricing tiers, cost-based margin rules, ancestor tier derivations, and item-level price overrides."

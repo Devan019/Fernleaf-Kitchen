@@ -59,3 +59,96 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
+
+/* ── Responsive Table → Card stacking on mobile ─────────────────────────── */
+/*
+ * Apply .table-responsive on the wrapper div around a <table>.
+ * On screens below 640px, the table collapses into card-style rows.
+ */
+@media (max-width: 639px) {
+  .table-responsive table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .table-responsive thead {
+    display: none;
+  }
+
+  .table-responsive tbody tr {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #eae5d8;
+    border-radius: 16px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    background: #fff;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .table-responsive tbody tr:hover {
+    background: #f6f2e8;
+  }
+
+  .table-responsive td {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 2px 0;
+    border: none;
+  }
+
+  /* Each td shows its label via data-label attribute */
+  .table-responsive td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    min-width: 100px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #78857a;
+    line-height: 1.6;
+  }
+
+  /* Hide purely decorative/action columns label */
+  .table-responsive td[data-label=""]::before {
+    display: none;
+  }
+
+  /* Action cell: full width button */
+  .table-responsive td.td-actions {
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid #eee9dc;
+    justify-content: flex-end;
+  }
+}
+
+/* ── Filter bar: collapse on mobile ─────────────────────────────────────── */
+@media (max-width: 639px) {
+  .filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .filter-grid .filter-full {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Utility: hide scrollbar but allow scroll ───────────────────────────── */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Safe area padding for mobile notch/home indicator ──────────────────── */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

@@ -202,7 +202,6 @@ export async function seedOrders() {
       });
     }
 
-    // Check existing lines
     const existingLines = await prisma.orderLine.findMany({
       where: { orderId },
       include: { OrderLineCombination: true },
@@ -290,6 +289,28 @@ export async function seedOrders() {
               },
             });
           }
+        }
+      }
+    } else {
+      // Synchronize kitchen unit statuses on existing orders
+      let cIdx = 0;
+      const allCombDefs = ordDef.lines.flatMap((l) => l.combinations);
+      for (const line of existingLines) {
+        for (const comb of line.OrderLineCombination) {
+          const combDef = allCombDefs[cIdx];
+          if (combDef && combDef.kitchenUnitStatus) {
+            await prisma.kitchenUnit.updateMany({
+              where: { combinationId: comb.id },
+              data: {
+                status: combDef.kitchenUnitStatus,
+                startedAt: combDef.startedAt ?? (combDef.kitchenUnitStatus !== KitchenUnitStatus.PENDING ? now : null),
+                startedByUserId: combDef.startedByUserId ?? (combDef.kitchenUnitStatus !== KitchenUnitStatus.PENDING ? kitchenUser?.id : null),
+                completedAt: combDef.completedAt ?? (combDef.kitchenUnitStatus === KitchenUnitStatus.DONE ? now : null),
+                completedByUserId: combDef.completedByUserId ?? (combDef.kitchenUnitStatus === KitchenUnitStatus.DONE ? kitchenUser?.id : null),
+              },
+            });
+          }
+          cIdx++;
         }
       }
     }
@@ -741,7 +762,7 @@ export async function seedOrders() {
       ],
     });
 
-    // Order 3: Google @ 13:00 (Tofu Bowl + Brownie -> KitchenUnit PENDING) - Drop 2
+    // Order 3: Google @ 13:00 (Tofu Bowl + Brownie -> KitchenUnit DONE) - Drop 2 (Kitchen Ready)
     const orderCfm3 = await upsertOrderStructure({
       orderNumber: 'TEST-TODAY-CFM-03',
       company: googleComp,
@@ -749,9 +770,11 @@ export async function seedOrders() {
       deliveryDate: todayStr,
       deliveryTime: '13:00',
       status: OrderStatus.CONFIRMED,
-      fulfillmentStatus: FulfillmentStatus.KITCHEN_PENDING,
+      fulfillmentStatus: FulfillmentStatus.KITCHEN_READY,
       placedAt: new Date(`${todayStr}T08:00:00.000Z`),
       confirmedAt: new Date(`${todayStr}T08:30:00.000Z`),
+      kitchenStartedAt: new Date(`${todayStr}T09:15:00.000Z`),
+      kitchenReadyAt: new Date(`${todayStr}T10:30:00.000Z`),
       packagingType: 'ECO_BOX',
       address: googleHqAddr,
       subtotal: '70.00',
@@ -767,7 +790,11 @@ export async function seedOrders() {
               quantity: 5,
               unitPrice: '9.50',
               combinationTotal: '47.50',
-              kitchenUnitStatus: KitchenUnitStatus.PENDING,
+              kitchenUnitStatus: KitchenUnitStatus.DONE,
+              startedAt: new Date(`${todayStr}T09:15:00.000Z`),
+              startedByUserId: kitchenUser?.id,
+              completedAt: new Date(`${todayStr}T10:30:00.000Z`),
+              completedByUserId: kitchenUser?.id,
               options: [],
             },
           ],
@@ -782,7 +809,11 @@ export async function seedOrders() {
               quantity: 5,
               unitPrice: '4.50',
               combinationTotal: '22.50',
-              kitchenUnitStatus: KitchenUnitStatus.PENDING,
+              kitchenUnitStatus: KitchenUnitStatus.DONE,
+              startedAt: new Date(`${todayStr}T09:15:00.000Z`),
+              startedByUserId: kitchenUser?.id,
+              completedAt: new Date(`${todayStr}T10:30:00.000Z`),
+              completedByUserId: kitchenUser?.id,
               options: [],
             },
           ],

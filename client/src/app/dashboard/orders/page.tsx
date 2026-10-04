@@ -103,7 +103,7 @@ export default function OrdersPage() {
   return (
     <ProtectedRoute requiredRole={["ADMIN", "KITCHEN"]}>
       <Header title="Orders" />
-      <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
         {/* Page Header */}
         <PageHeader
           title="Orders"
@@ -176,7 +176,7 @@ export default function OrdersPage() {
 
         {/* Filter Bar */}
         <div className="rounded-3xl border border-[#d9d2c2] bg-white p-4 shadow-xs space-y-3">
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
             {/* Search */}
             <div className="relative flex-1 min-w-[220px]">
               <Search
@@ -196,7 +196,7 @@ export default function OrdersPage() {
             </div>
 
             {/* Select Filters */}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
               {/* Status */}
               <select
                 value={statusFilter}
@@ -296,7 +296,7 @@ export default function OrdersPage() {
             </div>
           )}
 
-          <div className="overflow-x-auto">
+          <div className="table-responsive overflow-x-auto">
             <table className="w-full text-sm" aria-label="Catering Orders">
               <thead>
                 <tr className="border-b border-[#eae5d8] bg-[#f5f1e6]/70">
@@ -366,12 +366,12 @@ export default function OrdersPage() {
                         className="hover:bg-[#f6f2e8] transition-colors cursor-pointer group"
                       >
                         {/* Order Number */}
-                        <td className="px-6 py-4 font-mono font-bold text-xs text-[#26352a] group-hover:text-[#294d33]">
+                        <td data-label="Order #" className="px-6 py-4 font-mono font-bold text-xs text-[#26352a] group-hover:text-[#294d33]">
                           {order.orderNumber}
                         </td>
 
                         {/* Customer / Company */}
-                        <td className="px-6 py-4">
+                        <td data-label="Customer" className="px-6 py-4">
                           <p className="font-semibold text-xs text-[#26352a]">
                             {order.employeeName}
                           </p>
@@ -381,7 +381,7 @@ export default function OrdersPage() {
                         </td>
 
                         {/* Delivery Slot */}
-                        <td className="px-6 py-4">
+                        <td data-label="Delivery" className="px-6 py-4">
                           <p className="font-mono text-xs font-semibold text-[#26352a]">
                             📅 {order.deliveryDate}
                           </p>
@@ -391,17 +391,17 @@ export default function OrdersPage() {
                         </td>
 
                         {/* Status */}
-                        <td className="px-6 py-4">
+                        <td data-label="Status" className="px-6 py-4">
                           <Badge variant={badge.variant}>{badge.label}</Badge>
                         </td>
 
                         {/* Total */}
-                        <td className="px-6 py-4 font-mono font-bold text-xs text-[#26352a]">
+                        <td data-label="Total" className="px-6 py-4 font-mono font-bold text-xs text-[#26352a]">
                           ${Number(order.total).toFixed(2)}
                         </td>
 
                         {/* Invoiced */}
-                        <td className="px-6 py-4">
+                        <td data-label="Invoiced" className="px-6 py-4">
                           {order.isInvoiced ? (
                             <span className="rounded bg-[#294d33]/10 text-[#294d33] px-2 py-0.5 text-[10px] font-bold">
                               Invoiced
@@ -412,13 +412,14 @@ export default function OrdersPage() {
                         </td>
 
                         {/* Created */}
-                        <td className="px-6 py-4 text-[11px] text-[#78857a] font-mono">
+                        <td data-label="Created" className="px-6 py-4 text-[11px] text-[#78857a] font-mono">
                           {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
                         </td>
 
                         {/* Actions */}
                         <td
-                          className="px-6 py-4 text-right"
+                          data-label=""
+                          className="px-6 py-4 text-right td-actions"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Link

@@ -73,7 +73,9 @@ function formatDisplayDate(dateStr: string): string {
 
 export default function DispatchBoardPage() {
   const [deliveryDate, setDeliveryDate] = useState<string>(getTodayStr());
-  const [statusFilter, setStatusFilter] = useState<DeliveryDropStatus | "ALL">("ALL");
+  const [statusFilter, setStatusFilter] = useState<
+    DeliveryDropStatus | "KITCHEN_PENDING" | "ALL"
+  >("ALL");
   const [driverFilter, setDriverFilter] = useState<string>("ALL");
   const [search, setSearch] = useState("");
 
@@ -104,7 +106,12 @@ export default function DispatchBoardPage() {
   const metrics = useMemo(() => {
     const totalDrops = drops.length;
     const totalOrders = drops.reduce((acc, d) => acc + (d.ordersCount || 0), 0);
-    const kitchenReady = drops.filter((d) => d.status === "KITCHEN_READY").length;
+    const kitchenPending = drops.filter(
+      (d) => d.status === "KITCHEN_READY" && !d.canMarkReady
+    ).length;
+    const kitchenReady = drops.filter(
+      (d) => d.status === "KITCHEN_READY" && d.canMarkReady
+    ).length;
     const dispatchReady = drops.filter((d) => d.status === "DISPATCH_READY").length;
     const outForDelivery = drops.filter((d) => d.status === "OUT_FOR_DELIVERY").length;
     const delivered = drops.filter((d) => d.status === "DELIVERED").length;
@@ -112,6 +119,7 @@ export default function DispatchBoardPage() {
     return {
       totalDrops,
       totalOrders,
+      kitchenPending,
       kitchenReady,
       dispatchReady,
       outForDelivery,
@@ -134,7 +142,11 @@ export default function DispatchBoardPage() {
       }
 
       // Status
-      if (statusFilter !== "ALL") {
+      if (statusFilter === "KITCHEN_PENDING") {
+        if (drop.status !== "KITCHEN_READY" || drop.canMarkReady) return false;
+      } else if (statusFilter === "KITCHEN_READY") {
+        if (drop.status !== "KITCHEN_READY" || !drop.canMarkReady) return false;
+      } else if (statusFilter !== "ALL") {
         if (drop.status !== statusFilter) return false;
       }
 
@@ -152,7 +164,7 @@ export default function DispatchBoardPage() {
   return (
     <ProtectedRoute requiredRole={["ADMIN", "DISPATCH"]}>
       <Header title="Dispatch Board" />
-      <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
         {/* Page Header */}
         <PageHeader
           title="Dispatch Board"
@@ -228,7 +240,7 @@ export default function DispatchBoardPage() {
         </div>
 
         {/* ── Operational Drop Status Metric Counters ──────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <div className="rounded-2xl border border-[#d9d2c2] bg-white p-3.5 shadow-xs">
             <div className="text-[#78857a] text-[11px] font-bold uppercase tracking-wider mb-0.5 flex items-center justify-between">
               <span>Total Drops</span>
@@ -240,11 +252,20 @@ export default function DispatchBoardPage() {
 
           <div className="rounded-2xl border border-[#d9d2c2] bg-white p-3.5 shadow-xs">
             <div className="text-[#78857a] text-[11px] font-bold uppercase tracking-wider mb-0.5 flex items-center justify-between">
-              <span>Kitchen Ready</span>
-              <Clock size={13} className="text-[#e27d34]" />
+              <span>Kitchen Pending</span>
+              <Clock size={13} className="text-[#b45309]" />
             </div>
-            <p className="text-2xl font-black font-serif text-[#e27d34]">{metrics.kitchenReady}</p>
-            <p className="text-[10px] text-[#78857a] mt-0.5">Queued for packaging</p>
+            <p className="text-2xl font-black font-serif text-[#b45309]">{metrics.kitchenPending}</p>
+            <p className="text-[10px] text-[#78857a] mt-0.5">Cooking in kitchen</p>
+          </div>
+
+          <div className="rounded-2xl border border-[#d9d2c2] bg-white p-3.5 shadow-xs">
+            <div className="text-[#78857a] text-[11px] font-bold uppercase tracking-wider mb-0.5 flex items-center justify-between">
+              <span>Kitchen Ready</span>
+              <CheckCircle2 size={13} className="text-[#294d33]" />
+            </div>
+            <p className="text-2xl font-black font-serif text-[#294d33]">{metrics.kitchenReady}</p>
+            <p className="text-[10px] text-[#78857a] mt-0.5">Ready for packaging</p>
           </div>
 
           <div className="rounded-2xl border border-[#d9d2c2] bg-white p-3.5 shadow-xs">
@@ -268,7 +289,7 @@ export default function DispatchBoardPage() {
           <div className="rounded-2xl border border-[#d9d2c2] bg-white p-3.5 shadow-xs">
             <div className="text-[#78857a] text-[11px] font-bold uppercase tracking-wider mb-0.5 flex items-center justify-between">
               <span>Delivered</span>
-              <CheckCircle2 size={13} className="text-[#294d33]" />
+              <CheckCircle2 size={13} className="text-[#5c685e]" />
             </div>
             <p className="text-2xl font-black font-serif text-[#5c685e]">{metrics.delivered}</p>
             <p className="text-[10px] text-[#78857a] mt-0.5">Completed at destination</p>
@@ -293,11 +314,23 @@ export default function DispatchBoardPage() {
 
             <button
               type="button"
+              onClick={() => setStatusFilter("KITCHEN_PENDING")}
+              className={`rounded-xl px-3.5 py-2 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer border ${
+                statusFilter === "KITCHEN_PENDING"
+                  ? "border-[#b45309] bg-[#b45309] text-white"
+                  : "border-[#d9d2c2] bg-white text-[#b45309] hover:bg-[#fffbf0]"
+              }`}
+            >
+              Kitchen Pending ({metrics.kitchenPending})
+            </button>
+
+            <button
+              type="button"
               onClick={() => setStatusFilter("KITCHEN_READY")}
               className={`rounded-xl px-3.5 py-2 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer border ${
                 statusFilter === "KITCHEN_READY"
-                  ? "border-[#e27d34] bg-[#e27d34] text-white"
-                  : "border-[#d9d2c2] bg-white text-[#e27d34] hover:bg-[#fff9f5]"
+                  ? "border-[#294d33] bg-[#294d33] text-white"
+                  : "border-[#d9d2c2] bg-white text-[#294d33] hover:bg-[#fbfaf6]"
               }`}
             >
               Kitchen Ready ({metrics.kitchenReady})

@@ -21,35 +21,52 @@ import { useState } from "react";
 import { useMarkDropOutForDelivery, useMarkDropReady } from "./useDispatch";
 import { getErrorMessage } from "@/lib/utils/errors";
 
-const DROP_STATUS_CONFIG: Record<
-  DeliveryDropStatus,
-  { label: string; bg: string; text: string; border: string }
-> = {
-  KITCHEN_READY: {
-    label: "Kitchen Ready",
-    bg: "bg-[#faeee5]",
-    text: "text-[#e27d34]",
-    border: "border-[#f5d0b5]",
-  },
-  DISPATCH_READY: {
-    label: "Dispatch Ready",
-    bg: "bg-[#eaf0eb]",
-    text: "text-[#294d33]",
-    border: "border-[#c4d7c8]",
-  },
-  OUT_FOR_DELIVERY: {
-    label: "Out for Delivery",
-    bg: "bg-[#e6f0fa]",
-    text: "text-[#1d64b2]",
-    border: "border-[#bad4f5]",
-  },
-  DELIVERED: {
+export function getDropStatusConfig(
+  status: DeliveryDropStatus,
+  canMarkReady?: boolean
+): { label: string; bg: string; text: string; border: string } {
+  if (status === "KITCHEN_READY") {
+    if (canMarkReady) {
+      return {
+        label: "Kitchen Ready",
+        bg: "bg-[#eaf0eb]",
+        text: "text-[#294d33]",
+        border: "border-[#c4d7c8]",
+      };
+    }
+    return {
+      label: "Kitchen Pending",
+      bg: "bg-[#fffbf0]",
+      text: "text-[#b45309]",
+      border: "border-[#fde68a]",
+    };
+  }
+
+  if (status === "DISPATCH_READY") {
+    return {
+      label: "Dispatch Ready",
+      bg: "bg-[#eaf0eb]",
+      text: "text-[#294d33]",
+      border: "border-[#c4d7c8]",
+    };
+  }
+
+  if (status === "OUT_FOR_DELIVERY") {
+    return {
+      label: "Out for Delivery",
+      bg: "bg-[#e6f0fa]",
+      text: "text-[#1d64b2]",
+      border: "border-[#bad4f5]",
+    };
+  }
+
+  return {
     label: "Delivered",
     bg: "bg-[#f5f1e6]",
     text: "text-[#5c685e]",
     border: "border-[#d9d2c2]",
-  },
-};
+  };
+}
 
 interface DispatchDropCardProps {
   drop: DeliveryDrop;
@@ -67,7 +84,7 @@ export function DispatchDropCard({
 
   const [error, setError] = useState<string | null>(null);
 
-  const statusConfig = DROP_STATUS_CONFIG[drop.status] ?? DROP_STATUS_CONFIG.DISPATCH_READY;
+  const statusConfig = getDropStatusConfig(drop.status, drop.canMarkReady);
 
   const isKitchenReady = drop.status === "KITCHEN_READY";
   const isDispatchReady = drop.status === "DISPATCH_READY";
@@ -204,15 +221,28 @@ export function DispatchDropCard({
       {/* ── Action Buttons ──────────────────────────────────────────────── */}
       <div className="mt-4 pt-3 border-t border-[#eee9dc] space-y-2">
         {isKitchenReady && (
-          <button
-            type="button"
-            onClick={handleMarkReady}
-            disabled={markReadyMutation.isPending || !drop.canMarkReady}
-            className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#294d33] py-2.5 text-xs font-bold text-white hover:bg-[#1e3825] transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
-          >
-            <Package size={14} className="text-[#d8bd83]" />
-            <span>{markReadyMutation.isPending ? "Packing..." : "Mark Dispatch Ready"}</span>
-          </button>
+          <>
+            {!drop.canMarkReady ? (
+              <button
+                type="button"
+                disabled={true}
+                className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-[#fde68a] bg-[#fffbf0] py-2.5 text-xs font-bold text-[#b45309] shadow-2xs cursor-not-allowed opacity-90"
+              >
+                <Clock size={14} className="text-[#d97706] animate-pulse" />
+                <span>Kitchen Pending (In Preparation)</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleMarkReady}
+                disabled={markReadyMutation.isPending}
+                className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#294d33] py-2.5 text-xs font-bold text-white hover:bg-[#1e3825] transition-all shadow-xs cursor-pointer active:scale-95"
+              >
+                <Package size={14} className="text-[#d8bd83]" />
+                <span>{markReadyMutation.isPending ? "Packing..." : "Mark Dispatch Ready"}</span>
+              </button>
+            )}
+          </>
         )}
 
         {isDispatchReady && (

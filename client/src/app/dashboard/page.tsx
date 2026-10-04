@@ -10,30 +10,22 @@ import { useKitchenBoard } from "@/features/kitchen/useKitchen";
 import { useOrders } from "@/features/orders/useOrders";
 import { useUsers } from "@/features/users/useUsers";
 import {
-  AlertCircle,
   AlertTriangle,
-  ArrowRight,
   BadgeDollarSign,
   BookOpenCheck,
   Building2,
-  Calendar,
   CheckCircle2,
   ChefHat,
   Clock,
   Flame,
-  Layers,
   MapPin,
   Navigation,
-  Package,
-  Receipt,
   ReceiptText,
   RefreshCw,
-  ShieldCheck,
   ShoppingBag,
   SlidersHorizontal,
   Sparkles,
   Truck,
-  User,
   Users,
   UtensilsCrossed,
 } from "lucide-react";
@@ -66,10 +58,10 @@ export default function DashboardPage() {
   return (
     <>
       <Header title="Dashboard" />
-      <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
         {/* Welcome banner */}
         <div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#294d33]/10 px-3 py-1 text-xs font-semibold text-[#294d33] border border-[#294d33]/15">
               <Sparkles size={12} className="text-[#c8a96b]" />
               Fernleaf Kitchen Operations
@@ -84,7 +76,7 @@ export default function DashboardPage() {
               })}
             </span>
           </div>
-          <h2 className="font-serif text-3xl md:text-4xl font-bold tracking-tight text-[#26352a]">
+          <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[#26352a]">
             {greeting}, {currentUser?.name?.split(" ")[0] || "Staff"}
           </h2>
           <p className="mt-1 text-sm text-[#6b776c]">
@@ -114,7 +106,6 @@ export default function DashboardPage() {
 function AdminDashboardView() {
   const todayStr = useMemo(() => getTodayStr(), []);
 
-  // Fetch real metrics from backend
   const { data: ordersData, isLoading: loadingOrders } = useOrders({ limit: 10 });
   const { data: kitchenData, isLoading: loadingKitchen } = useKitchenBoard({
     deliveryDate: todayStr,
@@ -126,25 +117,19 @@ function AdminDashboardView() {
   const { data: companiesData } = useCompanies({ limit: 1 });
   const { data: usersData } = useUsers({ limit: 1 });
 
-  // Kitchen stats
   const allKitchenUnits = useMemo(() => {
     return (kitchenData?.stations ?? []).flatMap((s) => s.units);
   }, [kitchenData]);
 
-  const kitchenPending = allKitchenUnits.filter((u) => u.status === "PENDING").length;
-  const kitchenStarted = allKitchenUnits.filter((u) => u.status === "STARTED").length;
   const kitchenDone = allKitchenUnits.filter((u) => u.status === "DONE").length;
   const kitchenUrgent = allKitchenUnits.filter(
     (u) => (u.operationalStatus === "LATE" || u.operationalStatus === "AT_RISK") && u.status !== "DONE",
   ).length;
 
-  // Dispatch stats
   const drops = dispatchData?.drops ?? [];
-  const dispatchReady = drops.filter((d) => d.status === "DISPATCH_READY").length;
   const outForDelivery = drops.filter((d) => d.status === "OUT_FOR_DELIVERY").length;
   const deliveredDrops = drops.filter((d) => d.status === "DELIVERED").length;
 
-  // Billing stats
   const billingSummaries = billingData?.data ?? [];
   const totalUninvoicedOrders = billingSummaries.reduce(
     (acc, b) => acc + (b.uninvoicedOrderCount || 0),
@@ -156,13 +141,13 @@ function AdminDashboardView() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Overview Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Orders Card */}
         <Link
           href="/dashboard/orders"
-          className="group rounded-3xl border border-[#d9d2c2] bg-white p-5 shadow-xs hover:border-[#b7b6aa] hover:shadow-md transition-all"
+          className="group rounded-3xl border border-[#d9d2c2] bg-white p-4 sm:p-5 shadow-xs hover:border-[#b7b6aa] hover:shadow-md transition-all"
         >
           <div className="flex items-center justify-between text-[#78857a] mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">Catering Orders</span>
@@ -184,7 +169,7 @@ function AdminDashboardView() {
         {/* Kitchen Production Card */}
         <Link
           href="/dashboard/kitchen"
-          className="group rounded-3xl border border-[#d9d2c2] bg-white p-5 shadow-xs hover:border-[#b7b6aa] hover:shadow-md transition-all"
+          className="group rounded-3xl border border-[#d9d2c2] bg-white p-4 sm:p-5 shadow-xs hover:border-[#b7b6aa] hover:shadow-md transition-all"
         >
           <div className="flex items-center justify-between text-[#78857a] mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">Today&apos;s Kitchen</span>
@@ -210,7 +195,7 @@ function AdminDashboardView() {
         {/* Dispatch Drops Card */}
         <Link
           href="/dashboard/dispatch"
-          className="group rounded-3xl border border-[#d9d2c2] bg-white p-5 shadow-xs hover:border-[#b7b6aa] hover:shadow-md transition-all"
+          className="group rounded-3xl border border-[#d9d2c2] bg-white p-4 sm:p-5 shadow-xs hover:border-[#b7b6aa] hover:shadow-md transition-all"
         >
           <div className="flex items-center justify-between text-[#78857a] mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">Today&apos;s Dispatch</span>
@@ -234,7 +219,7 @@ function AdminDashboardView() {
         {/* Company Billing Card */}
         <Link
           href="/dashboard/billing"
-          className="group rounded-3xl border border-[#d9d2c2] bg-white p-5 shadow-xs hover:border-[#b7b6aa] hover:shadow-md transition-all"
+          className="group rounded-3xl border border-[#d9d2c2] bg-white p-4 sm:p-5 shadow-xs hover:border-[#b7b6aa] hover:shadow-md transition-all"
         >
           <div className="flex items-center justify-between text-[#78857a] mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">Billing Queue</span>
@@ -265,7 +250,7 @@ function AdminDashboardView() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           <Link
             href="/dashboard/catalogue"
             className="flex items-center gap-3.5 rounded-2xl border border-[#d9d2c2] bg-white p-4 shadow-xs hover:border-[#294d33] hover:shadow-sm transition-all group"
@@ -275,7 +260,7 @@ function AdminDashboardView() {
             </div>
             <div className="min-w-0">
               <p className="font-bold text-xs text-[#26352a] group-hover:text-[#294d33]">Catalogue</p>
-              <p className="text-[11px] text-[#78857a] truncate">Dishes, options & allergens</p>
+              <p className="text-[11px] text-[#78857a] truncate">Dishes, options &amp; allergens</p>
             </div>
           </Link>
 
@@ -288,7 +273,7 @@ function AdminDashboardView() {
             </div>
             <div className="min-w-0">
               <p className="font-bold text-xs text-[#26352a] group-hover:text-[#35617a]">Menu</p>
-              <p className="text-[11px] text-[#78857a] truncate">Categories & visibility rules</p>
+              <p className="text-[11px] text-[#78857a] truncate">Categories &amp; visibility rules</p>
             </div>
           </Link>
 
@@ -301,7 +286,7 @@ function AdminDashboardView() {
             </div>
             <div className="min-w-0">
               <p className="font-bold text-xs text-[#26352a] group-hover:text-[#8c6b29]">Pricing</p>
-              <p className="text-[11px] text-[#78857a] truncate">Tiers, markups & audits</p>
+              <p className="text-[11px] text-[#78857a] truncate">Tiers, markups &amp; audits</p>
             </div>
           </Link>
 
@@ -344,7 +329,7 @@ function AdminDashboardView() {
             </div>
             <div className="min-w-0">
               <p className="font-bold text-xs text-[#26352a] group-hover:text-[#5c685e]">Settings</p>
-              <p className="text-[11px] text-[#78857a] truncate">Cut-off times & holidays</p>
+              <p className="text-[11px] text-[#78857a] truncate">Cut-off times &amp; holidays</p>
             </div>
           </Link>
         </div>
@@ -378,15 +363,15 @@ function KitchenDashboardView() {
   ).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header CTA Card */}
-      <div className="rounded-3xl border border-[#d9d2c2] bg-white p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="rounded-3xl border border-[#d9d2c2] bg-white p-4 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#294d33] text-[#d8bd83] shadow-md font-serif text-2xl font-bold">
-            <ChefHat size={28} />
+          <div className="flex h-12 sm:h-14 w-12 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#294d33] text-[#d8bd83] shadow-md font-serif text-2xl font-bold">
+            <ChefHat size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-bold font-serif text-[#26352a]">
+            <h3 className="text-lg sm:text-xl font-bold font-serif text-[#26352a]">
               Today&apos;s Kitchen Workload
             </h3>
             <p className="text-xs text-[#5c685e] mt-0.5">
@@ -395,7 +380,7 @@ function KitchenDashboardView() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button
             variant="secondary"
             icon={<RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />}
@@ -412,37 +397,37 @@ function KitchenDashboardView() {
       </div>
 
       {/* Production Metric Counters */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-        <div className="rounded-2xl border border-[#d9d2c2] bg-white p-4 shadow-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="rounded-2xl border border-[#d9d2c2] bg-white p-3 sm:p-4 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#78857a] block">
             Total Units
           </span>
-          <p className="text-3xl font-black font-serif text-[#26352a] mt-1">{total}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#26352a] mt-1">{total}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#d9d2c2] bg-white p-4 shadow-xs">
+        <div className="rounded-2xl border border-[#d9d2c2] bg-white p-3 sm:p-4 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#5c685e] block">
             Queued (Pending)
           </span>
-          <p className="text-3xl font-black font-serif text-[#5c685e] mt-1">{pending}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#5c685e] mt-1">{pending}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#e27d34]/20 bg-[#faeee5]/50 p-4 shadow-xs">
+        <div className="rounded-2xl border border-[#e27d34]/20 bg-[#faeee5]/50 p-3 sm:p-4 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#e27d34] block">
             In Prep (Started)
           </span>
-          <p className="text-3xl font-black font-serif text-[#e27d34] mt-1">{started}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#e27d34] mt-1">{started}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#294d33]/20 bg-[#eaf0eb]/50 p-4 shadow-xs">
+        <div className="rounded-2xl border border-[#294d33]/20 bg-[#eaf0eb]/50 p-3 sm:p-4 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#294d33] block">
             Completed (Done)
           </span>
-          <p className="text-3xl font-black font-serif text-[#294d33] mt-1">{done}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#294d33] mt-1">{done}</p>
         </div>
 
         <div
-          className={`rounded-2xl border p-4 shadow-xs ${
+          className={`rounded-2xl border p-3 sm:p-4 shadow-xs col-span-2 sm:col-span-1 ${
             late > 0 || atRisk > 0
               ? "border-[#fca5a5] bg-[#fff5f5] text-[#dc2626]"
               : "border-[#d9d2c2] bg-white text-[#78857a]"
@@ -451,12 +436,12 @@ function KitchenDashboardView() {
           <span className="text-[10px] font-bold uppercase tracking-wider block">
             Urgent SLA (Late / Risk)
           </span>
-          <p className="text-3xl font-black font-serif mt-1">{late + atRisk}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif mt-1">{late + atRisk}</p>
         </div>
       </div>
 
       {/* Stations Breakdown Overview */}
-      <div className="rounded-3xl border border-[#d9d2c2] bg-white p-6 shadow-xs space-y-4">
+      <div className="rounded-3xl border border-[#d9d2c2] bg-white p-4 sm:p-6 shadow-xs space-y-4">
         <h4 className="font-serif text-base font-bold text-[#26352a]">Active Station Breakdown</h4>
         {stations.length === 0 ? (
           <p className="text-xs text-[#9fa89e] italic">No active stations today.</p>
@@ -465,7 +450,7 @@ function KitchenDashboardView() {
             {stations.map((station) => (
               <div
                 key={station.id}
-                className="rounded-2xl border border-[#eae5d8] bg-[#fbfaf6] p-4 flex items-center justify-between"
+                className="rounded-2xl border border-[#eae5d8] bg-[#fbfaf6] p-3 sm:p-4 flex items-center justify-between"
               >
                 <div className="flex items-center gap-2.5">
                   <Flame size={16} className="text-[#294d33]" />
@@ -504,16 +489,16 @@ function DispatchDashboardView() {
   const unassigned = drops.filter((d) => !d.driver && d.status !== "DELIVERED").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header CTA Card */}
-      <div className="rounded-3xl border border-[#d9d2c2] bg-white p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="rounded-3xl border border-[#d9d2c2] bg-white p-4 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#1d64b2] text-white shadow-md font-serif text-2xl font-bold">
-            <Truck size={28} />
+          <div className="flex h-12 sm:h-14 w-12 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#1d64b2] text-white shadow-md font-serif text-2xl font-bold">
+            <Truck size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-bold font-serif text-[#26352a]">
-              Today&apos;s Dispatch & Delivery Operations
+            <h3 className="text-lg sm:text-xl font-bold font-serif text-[#26352a]">
+              Today&apos;s Dispatch &amp; Delivery Operations
             </h3>
             <p className="text-xs text-[#5c685e] mt-0.5">
               {totalDrops} delivery drops totaling {totalOrders} individual catering orders.
@@ -521,7 +506,7 @@ function DispatchDashboardView() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button
             variant="secondary"
             icon={<RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />}
@@ -538,54 +523,54 @@ function DispatchDashboardView() {
       </div>
 
       {/* Dispatch Drop Metric Counters */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-        <div className="rounded-2xl border border-[#d9d2c2] bg-white p-4 shadow-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="rounded-2xl border border-[#d9d2c2] bg-white p-3 sm:p-4 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#78857a] block">
             Total Drops
           </span>
-          <p className="text-3xl font-black font-serif text-[#26352a] mt-1">{totalDrops}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#26352a] mt-1">{totalDrops}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#e27d34]/20 bg-[#faeee5]/40 p-4 shadow-xs">
+        <div className="rounded-2xl border border-[#e27d34]/20 bg-[#faeee5]/40 p-3 sm:p-4 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#e27d34] block">
             Kitchen Ready (Packaging)
           </span>
-          <p className="text-3xl font-black font-serif text-[#e27d34] mt-1">{kitchenReady}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#e27d34] mt-1">{kitchenReady}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#294d33]/20 bg-[#eaf0eb]/40 p-4 shadow-xs">
+        <div className="rounded-2xl border border-[#294d33]/20 bg-[#eaf0eb]/40 p-3 sm:p-4 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#294d33] block">
             Dispatch Ready (Staged)
           </span>
-          <p className="text-3xl font-black font-serif text-[#294d33] mt-1">{dispatchReady}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#294d33] mt-1">{dispatchReady}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#1d64b2]/20 bg-[#e6f0fa]/40 p-4 shadow-xs">
+        <div className="rounded-2xl border border-[#1d64b2]/20 bg-[#e6f0fa]/40 p-3 sm:p-4 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#1d64b2] block">
             Out for Delivery
           </span>
-          <p className="text-3xl font-black font-serif text-[#1d64b2] mt-1">{outForDelivery}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#1d64b2] mt-1">{outForDelivery}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#d9d2c2] bg-white p-4 shadow-xs">
+        <div className="rounded-2xl border border-[#d9d2c2] bg-white p-3 sm:p-4 shadow-xs col-span-2 sm:col-span-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#5c685e] block">
             Delivered
           </span>
-          <p className="text-3xl font-black font-serif text-[#5c685e] mt-1">{delivered}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#5c685e] mt-1">{delivered}</p>
         </div>
       </div>
 
       {/* Unassigned Warning Alert */}
       {unassigned > 0 && (
-        <div className="rounded-2xl bg-[#fff9f0] border border-[#fae2c5] p-4 flex items-center justify-between gap-4">
+        <div className="rounded-2xl bg-[#fff9f0] border border-[#fae2c5] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <AlertTriangle size={20} className="text-[#e27d34]" />
+            <AlertTriangle size={20} className="text-[#e27d34] shrink-0" />
             <p className="text-xs text-[#a05a18] font-bold">
               {unassigned} delivery {unassigned === 1 ? "drop requires" : "drops require"} driver
               assignment before vehicle departure.
             </p>
           </div>
-          <Link href="/dashboard/dispatch">
+          <Link href="/dashboard/dispatch" className="shrink-0">
             <Button size="sm" variant="secondary">
               Assign Drivers →
             </Button>
@@ -612,28 +597,27 @@ function DriverDashboardView() {
   const completed = drops.filter((d) => d.status === "DELIVERED").length;
   const remaining = drops.filter((d) => d.status !== "DELIVERED").length;
 
-  // Next delivery stop
   const nextDrop = useMemo(() => {
     return drops.find((d) => d.status !== "DELIVERED") || null;
   }, [drops]);
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-4 sm:space-y-6 max-w-4xl">
       {/* Header CTA Card */}
-      <div className="rounded-3xl border border-[#d9d2c2] bg-white p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="rounded-3xl border border-[#d9d2c2] bg-white p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#294d33] text-[#d8bd83] shadow-md font-serif text-2xl font-bold">
-            <Navigation size={28} />
+          <div className="flex h-12 sm:h-14 w-12 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#294d33] text-[#d8bd83] shadow-md font-serif text-2xl font-bold">
+            <Navigation size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-bold font-serif text-[#26352a]">My Assigned Route</h3>
+            <h3 className="text-lg sm:text-xl font-bold font-serif text-[#26352a]">My Assigned Route</h3>
             <p className="text-xs text-[#5c685e] mt-0.5">
               {total} scheduled stops today · {remaining} stops remaining.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button
             variant="secondary"
             icon={<RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />}
@@ -650,33 +634,33 @@ function DriverDashboardView() {
       </div>
 
       {/* Progress Cards */}
-      <div className="grid grid-cols-3 gap-3.5">
-        <div className="rounded-2xl border border-[#d9d2c2] bg-white p-4 text-center shadow-xs">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl border border-[#d9d2c2] bg-white p-3 sm:p-4 text-center shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#78857a] block">
             Assigned Today
           </span>
-          <p className="text-3xl font-black font-serif text-[#26352a] mt-1">{total}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#26352a] mt-1">{total}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#1d64b2]/20 bg-[#e6f0fa]/50 p-4 text-center shadow-xs">
+        <div className="rounded-2xl border border-[#1d64b2]/20 bg-[#e6f0fa]/50 p-3 sm:p-4 text-center shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#1d64b2] block">
             Remaining
           </span>
-          <p className="text-3xl font-black font-serif text-[#1d64b2] mt-1">{remaining}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#1d64b2] mt-1">{remaining}</p>
         </div>
 
-        <div className="rounded-2xl border border-[#294d33]/20 bg-[#eaf0eb]/50 p-4 text-center shadow-xs">
+        <div className="rounded-2xl border border-[#294d33]/20 bg-[#eaf0eb]/50 p-3 sm:p-4 text-center shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#294d33] block">
             Delivered
           </span>
-          <p className="text-3xl font-black font-serif text-[#294d33] mt-1">{completed}</p>
+          <p className="text-2xl sm:text-3xl font-black font-serif text-[#294d33] mt-1">{completed}</p>
         </div>
       </div>
 
       {/* Next Delivery Stop Spotlight */}
       {nextDrop ? (
-        <div className="rounded-3xl border-2 border-[#1d64b2] bg-white p-6 shadow-md space-y-4">
-          <div className="flex items-center justify-between border-b border-[#eee9dc] pb-3">
+        <div className="rounded-3xl border-2 border-[#1d64b2] bg-white p-4 sm:p-6 shadow-md space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#eee9dc] pb-3">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1d64b2]/10 px-3 py-1 text-xs font-bold text-[#1d64b2]">
               <Clock size={13} />
               Next Stop @ {nextDrop.deliveryTime}
@@ -710,7 +694,7 @@ function DriverDashboardView() {
           </div>
         </div>
       ) : (
-        <div className="rounded-3xl border border-[#d9d2c2] bg-white p-8 text-center">
+        <div className="rounded-3xl border border-[#d9d2c2] bg-white p-6 sm:p-8 text-center">
           <CheckCircle2 size={36} className="mx-auto text-[#294d33] mb-2" />
           <h4 className="font-serif font-bold text-base text-[#26352a]">All Deliveries Complete</h4>
           <p className="text-xs text-[#78857a] mt-1">

@@ -1,7 +1,8 @@
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { useDispatchDrop } from "./useDispatch";
+import { useDispatchDrop, useDriverDrop } from "./useDispatch";
+import { useAuth } from "@/features/auth/AuthContext";
 import type { DeliveryDropStatus } from "@/types";
 import {
   AlertCircle,
@@ -21,48 +22,27 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const DROP_STATUS_CONFIG: Record<
-  DeliveryDropStatus,
-  { label: string; bg: string; text: string; border: string }
-> = {
-  KITCHEN_READY: {
-    label: "Kitchen Ready",
-    bg: "bg-[#faeee5]",
-    text: "text-[#e27d34]",
-    border: "border-[#f5d0b5]",
-  },
-  DISPATCH_READY: {
-    label: "Dispatch Ready",
-    bg: "bg-[#eaf0eb]",
-    text: "text-[#294d33]",
-    border: "border-[#c4d7c8]",
-  },
-  OUT_FOR_DELIVERY: {
-    label: "Out for Delivery",
-    bg: "bg-[#e6f0fa]",
-    text: "text-[#1d64b2]",
-    border: "border-[#bad4f5]",
-  },
-  DELIVERED: {
-    label: "Delivered",
-    bg: "bg-[#f5f1e6]",
-    text: "text-[#5c685e]",
-    border: "border-[#d9d2c2]",
-  },
-};
+import { getDropStatusConfig } from "./DispatchDropCard";
 
 interface DropDetailDrawerProps {
   open: boolean;
   onClose: () => void;
   dropId: string;
+  isDriver?: boolean;
 }
 
-export function DropDetailDrawer({ open, onClose, dropId }: DropDetailDrawerProps) {
-  const { data: drop, isLoading, isError } = useDispatchDrop(dropId);
+export function DropDetailDrawer({ open, onClose, dropId, isDriver }: DropDetailDrawerProps) {
+  const { currentUser } = useAuth();
+  const isDriverMode = isDriver ?? currentUser?.role === "DRIVER";
+
+  const dispatchQuery = useDispatchDrop(isDriverMode ? "" : dropId);
+  const driverQuery = useDriverDrop(isDriverMode ? dropId : "");
+
+  const { data: drop, isLoading, isError } = isDriverMode ? driverQuery : dispatchQuery;
 
   const statusConfig = drop
-    ? DROP_STATUS_CONFIG[drop.status] ?? DROP_STATUS_CONFIG.DISPATCH_READY
-    : DROP_STATUS_CONFIG.DISPATCH_READY;
+    ? getDropStatusConfig(drop.status, drop.canMarkReady)
+    : { label: "Dispatch Ready", bg: "bg-[#eaf0eb]", text: "text-[#294d33]", border: "border-[#c4d7c8]" };
 
   const formatTime = (isoString?: string | null) => {
     if (!isoString) return null;
@@ -169,13 +149,19 @@ export function DropDetailDrawer({ open, onClose, dropId }: DropDetailDrawerProp
                 <div key={order.id} className="p-3.5 flex items-center justify-between gap-3 hover:bg-[#fbfaf6]">
                   <div>
                     <div className="flex items-center gap-2">
-                      <Link
-                        href={`/dashboard/orders/${order.id}`}
-                        className="font-mono text-xs font-bold text-[#294d33] hover:underline flex items-center gap-1"
-                      >
-                        <span>{order.orderNumber}</span>
-                        <ExternalLink size={10} />
-                      </Link>
+                      {isDriverMode ? (
+                        <span className="font-mono text-xs font-bold text-[#294d33]">
+                          {order.orderNumber}
+                        </span>
+                      ) : (
+                        <Link
+                          href={`/dashboard/orders/${order.id}`}
+                          className="font-mono text-xs font-bold text-[#294d33] hover:underline flex items-center gap-1"
+                        >
+                          <span>{order.orderNumber}</span>
+                          <ExternalLink size={10} />
+                        </Link>
+                      )}
                       <span className="rounded bg-[#f3efe6] px-1.5 py-0.2 text-[10px] font-mono text-[#5c685e]">
                         {order.packagingType || "ECO_BOX"}
                       </span>

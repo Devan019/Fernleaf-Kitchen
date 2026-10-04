@@ -34,7 +34,7 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 animate-in fade-in duration-200"
     >
       {/* Backdrop */}
       <div
@@ -44,9 +44,9 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
         aria-hidden="true"
       />
 
-      {/* Panel */}
+      {/* Panel — bottom sheet on mobile, centered on sm+ */}
       <div
-        className={`relative z-10 w-full ${widthClass} max-h-[80vh] flex flex-col overflow-hidden rounded-3xl border border-[#d9d2c2] bg-[#fbfaf6] shadow-[0_25px_70px_rgba(20,40,26,0.18)]`}
+        className={`relative z-10 w-full ${widthClass} max-h-[90vh] sm:max-h-[80vh] flex flex-col overflow-hidden rounded-t-3xl sm:rounded-3xl border border-[#d9d2c2] bg-[#fbfaf6] shadow-[0_25px_70px_rgba(20,40,26,0.18)] animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-300`}
       >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-[#eae5d8] px-7 py-4.5 bg-[#f5f1e6]/60">

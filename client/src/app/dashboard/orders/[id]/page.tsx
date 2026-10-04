@@ -138,7 +138,7 @@ export default function OrderDetailPage() {
   return (
     <ProtectedRoute requiredRole={["ADMIN", "KITCHEN"]}>
       <Header title={order.orderNumber} />
-      <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
         {/* Navigation Back */}
         <div>
           <Link

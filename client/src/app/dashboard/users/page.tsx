@@ -112,7 +112,7 @@ export default function UsersPage() {
   return (
     <ProtectedRoute requiredRole="ADMIN">
       <Header title="Users" />
-      <main className="flex-1 overflow-y-auto p-6 md:p-8">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
         <PageHeader
           title="Staff Users"
           description="Manage kitchen personnel, drivers, dispatch, and system administrators."

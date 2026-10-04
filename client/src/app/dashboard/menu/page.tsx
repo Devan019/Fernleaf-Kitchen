@@ -153,7 +153,7 @@ export default function MenuPage() {
   return (
     <ProtectedRoute requiredRole={["ADMIN", "KITCHEN"]}>
       <Header title="Menu Management" />
-      <main className="flex-1 overflow-y-auto p-6 md:p-8">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
         <PageHeader
           title="Catering Menu Architecture"
           description="Organize customer-facing menu categories, dish display sequences, secret promotional menus, and corporate visibility rules."
