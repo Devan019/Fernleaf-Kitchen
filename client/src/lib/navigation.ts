@@ -3,10 +3,14 @@ import {
   BadgeDollarSign,
   BookOpenCheck,
   Building2,
+  ChefHat,
+  Flame,
   LayoutDashboard,
+  Navigation,
   ShoppingBag,
-  UtensilsCrossed,
+  Truck,
   Users,
+  UtensilsCrossed,
 } from "lucide-react";
 
 export interface NavItem {
@@ -28,6 +32,24 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/dashboard/orders",
     icon: ShoppingBag,
     allowedRoles: ["ADMIN", "KITCHEN", "DISPATCH"],
+  },
+  {
+    label: "Kitchen Board",
+    href: "/dashboard/kitchen",
+    icon: ChefHat,
+    allowedRoles: ["ADMIN", "KITCHEN", "DISPATCH"],
+  },
+  {
+    label: "Delivery Operations",
+    href: "/dashboard/deliveries",
+    icon: Truck,
+    allowedRoles: ["ADMIN", "DISPATCH"],
+  },
+  {
+    label: "My Deliveries",
+    href: "/dashboard/deliveries/my",
+    icon: Navigation,
+    allowedRoles: ["DRIVER"],
   },
   {
     label: "Catalogue",

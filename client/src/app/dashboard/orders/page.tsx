@@ -10,7 +10,6 @@ import { TableSkeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/features/auth/AuthContext";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
 import { useCompanies } from "@/features/companies/useCompanies";
-import { KitchenOrderBoard } from "@/features/orders/kitchen/KitchenOrderBoard";
 import { ProcessCutoffModal } from "@/features/orders/ProcessCutoffModal";
 import { useCancelOrder, useOrders } from "@/features/orders/useOrders";
 import { getErrorMessage } from "@/lib/utils/errors";
@@ -51,18 +50,8 @@ export default function OrdersPage() {
   const router = useRouter();
   const { currentUser } = useAuth();
   const isAdmin = currentUser?.role === "ADMIN";
-  const isKitchen = currentUser?.role === "KITCHEN";
 
-  // If Kitchen role, render the specialized production board
-  if (isKitchen) {
-    return (
-      <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
-        <KitchenOrderBoard />
-      </ProtectedRoute>
-    );
-  }
-
-  // Filter States (Admin & Dispatch)
+  // Filter States (Admin, Kitchen & Dispatch)
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "ALL">("ALL");
   const [companyFilter, setCompanyFilter] = useState<string>("ALL");
@@ -117,8 +106,8 @@ export default function OrdersPage() {
       <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
         {/* Page Header */}
         <PageHeader
-          title="Catering Orders"
-          description="Track, create, and manage corporate catering orders across draft, placed, cut-off confirmed, and delivered states."
+          title="Orders"
+          description="Manage customer orders and their lifecycle across draft, placed, cut-off confirmed, and delivered states."
           actions={
             <div className="flex items-center gap-2.5 flex-wrap">
               {isAdmin && (

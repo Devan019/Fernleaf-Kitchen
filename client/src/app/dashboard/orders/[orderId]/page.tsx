@@ -9,7 +9,6 @@ import { useAuth } from "@/features/auth/AuthContext";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
 import { AdminOverrideModal } from "@/features/orders/AdminOverrideModal";
 import { CancelOrderModal } from "@/features/orders/CancelOrderModal";
-import { KitchenOrderDetail } from "@/features/orders/kitchen/KitchenOrderDetail";
 import { OrderTimeline } from "@/features/orders/OrderTimeline";
 import {
   useAdminOverrideDelivery,
@@ -136,14 +135,6 @@ export default function OrderDetailPage() {
             </Button>
           </div>
         </main>
-      </ProtectedRoute>
-    );
-  }
-
-  if (currentUser?.role === "KITCHEN") {
-    return (
-      <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
-        <KitchenOrderDetail order={order} />
       </ProtectedRoute>
     );
   }
