@@ -2,7 +2,6 @@
 
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { useDishes, useOptions } from "@/features/catalogue/useCatalogue";
 import {
@@ -15,7 +14,6 @@ import { getErrorMessage } from "@/lib/utils/errors";
 import {
   BadgeDollarSign,
   Building2,
-  Calculator,
   CheckCircle2,
   Percent,
   Play,
@@ -135,38 +133,20 @@ export function PriceResolutionPlaygroundModal({
             </label>
             {loadingCompanies ? (
               <div className="h-10 rounded-xl bg-[#eae5d8] animate-pulse" />
-            ) : companies.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div className="sm:col-span-2">
-                  <select
-                    value={companyId}
-                    onChange={(e) => setCompanyId(e.target.value)}
-                    className="h-10 w-full rounded-xl border border-[#d9d2c2] bg-white px-3.5 text-xs text-[#26352a] focus:border-[#315d3c] focus:outline-none focus:ring-4 focus:ring-[#315d3c]/10"
-                    required
-                  >
-                    <option value="">Select a corporate company...</option>
-                    {companies.map((comp) => (
-                      <option key={comp.id} value={comp.id}>
-                        {comp.name} {comp.code ? `(${comp.code})` : ""} — Tier: {comp.priceTier?.name ?? "Default"}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <Input
-                  placeholder="Or enter Company ID..."
-                  value={companyId}
-                  onChange={(e) => setCompanyId(e.target.value)}
-                  className="text-xs"
-                />
-              </div>
             ) : (
-              <Input
-                placeholder="Enter Company ID (e.g. cmp_123456789)..."
+              <select
                 value={companyId}
                 onChange={(e) => setCompanyId(e.target.value)}
-                className="text-xs"
+                className="h-10 w-full rounded-xl border border-[#d9d2c2] bg-white px-3.5 text-xs text-[#26352a] focus:border-[#315d3c] focus:outline-none focus:ring-4 focus:ring-[#315d3c]/10"
                 required
-              />
+              >
+                <option value="">Select a corporate company...</option>
+                {companies.map((comp) => (
+                  <option key={comp.id} value={comp.id}>
+                    {comp.name} {comp.code ? `(${comp.code})` : ""} — Price Tier: {comp.priceTier?.name ?? "Default"}
+                  </option>
+                ))}
+              </select>
             )}
           </div>
 
@@ -213,30 +193,20 @@ export function PriceResolutionPlaygroundModal({
                 {itemType === "DISH" ? "Select Master Dish *" : "Select Catalogue Option *"}
               </label>
               {itemType === "DISH" ? (
-                dishes.length > 0 ? (
-                  <select
-                    value={itemId}
-                    onChange={(e) => setItemId(e.target.value)}
-                    className="h-10 w-full rounded-xl border border-[#d9d2c2] bg-white px-3.5 text-xs text-[#26352a] focus:border-[#315d3c] focus:outline-none"
-                    required
-                  >
-                    <option value="">Select dish from catalogue...</option>
-                    {dishes.map((dish) => (
-                      <option key={dish.id} value={dish.id}>
-                        {dish.name} ({dish.sku}) — Cost: ${Number(dish.costPrice).toFixed(2)}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <Input
-                    placeholder="e.g. dish_111"
-                    value={itemId}
-                    onChange={(e) => setItemId(e.target.value)}
-                    className="text-xs"
-                    required
-                  />
-                )
-              ) : options.length > 0 ? (
+                <select
+                  value={itemId}
+                  onChange={(e) => setItemId(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-[#d9d2c2] bg-white px-3.5 text-xs text-[#26352a] focus:border-[#315d3c] focus:outline-none"
+                  required
+                >
+                  <option value="">Select dish from catalogue...</option>
+                  {dishes.map((dish) => (
+                    <option key={dish.id} value={dish.id}>
+                      {dish.name} {dish.sku ? `(${dish.sku})` : ""} — Cost: ${Number(dish.costPrice).toFixed(2)}
+                    </option>
+                  ))}
+                </select>
+              ) : (
                 <select
                   value={itemId}
                   onChange={(e) => setItemId(e.target.value)}
@@ -250,14 +220,6 @@ export function PriceResolutionPlaygroundModal({
                     </option>
                   ))}
                 </select>
-              ) : (
-                <Input
-                  placeholder="e.g. opt_avocado"
-                  value={itemId}
-                  onChange={(e) => setItemId(e.target.value)}
-                  className="text-xs"
-                  required
-                />
               )}
             </div>
           </div>
@@ -307,19 +269,20 @@ export function PriceResolutionPlaygroundModal({
 
                   <h3 className="font-serif text-2xl font-bold text-[#fbfaf6]">
                     {activeItemType === "DISH"
-                      ? selectedDish?.name ?? resolved.itemName ?? activeItemId
-                      : selectedOption?.name ?? resolved.itemName ?? activeItemId}
+                      ? selectedDish?.name ?? resolved.itemName ?? "Selected Dish"
+                      : selectedOption?.name ?? resolved.itemName ?? "Selected Option"}
                   </h3>
 
-                  <p className="text-xs text-[#9eb6a3] font-mono mt-0.5">
-                    {activeItemType} ID: {activeItemId}
-                    {selectedDish?.sku && ` • SKU: ${selectedDish.sku}`}
-                  </p>
+                  {selectedDish?.sku && (
+                    <p className="text-xs text-[#9eb6a3] font-mono mt-0.5">
+                      SKU: {selectedDish.sku}
+                    </p>
+                  )}
                 </div>
 
                 <div className="text-left sm:text-right bg-white/10 p-4 rounded-2xl border border-white/10 shrink-0">
                   <p className="text-[10px] text-[#9eb6a3] uppercase tracking-wider">
-                    Company Unit Price
+                    Company Selling Price
                   </p>
                   <p className="font-serif text-3xl font-bold text-[#d8bd83]">
                     ${Number(resolved.price ?? 0).toFixed(2)}
@@ -334,7 +297,7 @@ export function PriceResolutionPlaygroundModal({
                   <div>
                     <span className="text-[#9eb6a3]">Company: </span>
                     <span className="font-semibold text-white">
-                      {contextData?.companyName ?? selectedCompany?.name ?? activeCompanyId}
+                      {contextData?.companyName ?? selectedCompany?.name ?? "Selected Company"}
                     </span>
                   </div>
                 </div>
@@ -344,7 +307,7 @@ export function PriceResolutionPlaygroundModal({
                   <div>
                     <span className="text-[#9eb6a3]">Effective Price Tier: </span>
                     <span className="font-semibold text-white">
-                      {resolved.tierName ?? contextData?.priceTierName}
+                      {resolved.tierName ?? contextData?.priceTierName ?? "Standard Tier"}
                       {contextData?.isDefaultTier && " (System Default)"}
                     </span>
                   </div>

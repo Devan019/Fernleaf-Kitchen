@@ -264,7 +264,11 @@ Required.
 ### Request Body
 ```json
 {
-  "categoryIds": ["cat_lunch", "cat_exec", "cat_dessert"]
+  "categories": [
+    { "categoryId": "cat_lunch", "displayOrder": 1 },
+    { "categoryId": "cat_exec", "displayOrder": 2 },
+    { "categoryId": "cat_dessert", "displayOrder": 3 }
+  ]
 }
 ```
 
@@ -407,7 +411,11 @@ Required.
 ### Request Body
 ```json
 {
-  "dishIds": ["dish_111", "dish_222", "dish_333"]
+  "items": [
+    { "dishId": "dish_111", "displayOrder": 1 },
+    { "dishId": "dish_222", "displayOrder": 2 },
+    { "dishId": "dish_333", "displayOrder": 3 }
+  ]
 }
 ```
 

@@ -3,23 +3,39 @@
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { useAllergens, useDietaryTags } from "@/features/catalogue/useCatalogue";
+import {
+  useAllergens,
+  useDietaryTags,
+  useKitchenStations,
+} from "@/features/catalogue/useCatalogue";
 import type {
   Allergen,
   CreateDishRequest,
   DietaryTag,
   Dish,
   DishTemperature,
+  KitchenStation,
   UpdateDishRequest,
 } from "@/types";
-import { Flame, Snowflake } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  Building2,
+  Flame,
+  Image as ImageIcon,
+  Snowflake,
+  Trash2,
+  Upload,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface DishFormModalProps {
   open: boolean;
   onClose: () => void;
   dish?: Dish | null;
-  onSubmit: (data: CreateDishRequest | UpdateDishRequest) => Promise<void>;
+  onSubmit: (
+    data: CreateDishRequest | UpdateDishRequest,
+    imageFile?: File | null,
+    removeImage?: boolean,
+  ) => Promise<void>;
   loading?: boolean;
   serverError?: string | null;
 }
@@ -35,6 +51,9 @@ export function DishFormModal({
   const isEdit = Boolean(dish);
   const { data: rawAllergens } = useAllergens();
   const { data: rawDietary } = useDietaryTags();
+  const { data: rawStations } = useKitchenStations();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const allergensList: Allergen[] = Array.isArray(rawAllergens)
     ? rawAllergens
@@ -48,6 +67,12 @@ export function DishFormModal({
       ? (rawDietary as any).data
       : [];
 
+  const stationsList: KitchenStation[] = Array.isArray(rawStations)
+    ? rawStations
+    : Array.isArray((rawStations as any)?.data)
+      ? (rawStations as any).data
+      : [];
+
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [description, setDescription] = useState("");
@@ -58,6 +83,11 @@ export function DishFormModal({
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietaryTags, setSelectedDietaryTags] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
+
+  // Image upload & preview state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -73,6 +103,9 @@ export function DishFormModal({
       setSelectedAllergens(dish.allergens?.map((a) => a.id) ?? []);
       setSelectedDietaryTags(dish.dietaryTags?.map((d) => d.id) ?? []);
       setIsActive(dish.isActive);
+      setImagePreview(dish.imageUrl ?? null);
+      setImageFile(null);
+      setRemoveImage(false);
     } else {
       setName("");
       setSku("");
@@ -84,9 +117,31 @@ export function DishFormModal({
       setSelectedAllergens([]);
       setSelectedDietaryTags([]);
       setIsActive(true);
+      setImagePreview(null);
+      setImageFile(null);
+      setRemoveImage(false);
     }
     setErrors({});
   }, [dish, open]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setRemoveImage(false);
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setRemoveImage(true);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +171,7 @@ export function DishFormModal({
       isActive,
     };
 
-    await onSubmit(payload);
+    await onSubmit(payload, imageFile, removeImage);
   };
 
   const toggleAllergen = (id: string) => {
@@ -136,17 +191,72 @@ export function DishFormModal({
       open={open}
       onClose={onClose}
       title={isEdit ? "Edit Catalogue Dish" : "Create New Catalogue Dish"}
-      size="lg"
+      size="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {serverError && (
           <div className="rounded-xl bg-[#fff5f5] p-3 text-xs text-[#a34747] border border-[#ffdada]">
             {serverError}
           </div>
         )}
 
+        {/* Dish Image & Primary Info Header */}
+        <div className="flex gap-4 items-center rounded-2xl bg-[#fbfaf6] border border-[#eae5d8] p-3.5 shadow-xs">
+          <div className="relative group w-20 h-20 rounded-xl bg-white border border-[#d9d2c2] overflow-hidden shrink-0 flex items-center justify-center shadow-inner">
+            {imagePreview ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imagePreview}
+                  alt="Dish Preview"
+                  className="w-full h-full object-cover"
+                />
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-[#9fa89e]">
+                <ImageIcon size={22} />
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                icon={<Upload size={12} />}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {imagePreview ? "Change Photo" : "Upload Photo"}
+              </Button>
+              {imagePreview && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  icon={<Trash2 size={12} className="text-[#a34747]" />}
+                  onClick={handleRemovePhoto}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+            <p className="text-[11px] text-[#78857a]">
+              JPEG, PNG, WebP or GIF (max 5MB). Photo is shown on employee portals.
+            </p>
+          </div>
+        </div>
+
         {/* Row 1: Name & SKU */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input
             label="Dish Name *"
             placeholder="e.g. Herb-Roasted Salmon"
@@ -183,12 +293,12 @@ export function DishFormModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Detailed ingredients, cooking notes, or serving description..."
-            className="w-full rounded-xl border border-[#d9d2c2] bg-white p-3 text-sm text-[#26352a] placeholder-[#9fa89e] transition-all focus:border-[#315d3c] focus:outline-none focus:ring-4 focus:ring-[#315d3c]/10"
+            className="w-full rounded-xl border border-[#d9d2c2] bg-white p-2.5 text-xs text-[#26352a] placeholder-[#9fa89e] transition-all focus:border-[#315d3c] focus:outline-none focus:ring-4 focus:ring-[#315d3c]/10"
           />
         </div>
 
         {/* Row 2: Temperature, Cost Price, Min Order Qty */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="text-xs font-semibold tracking-wide text-[#4c594f] block mb-1.5">
               Serving Temperature *
@@ -203,7 +313,7 @@ export function DishFormModal({
                     : "text-[#5c685e] hover:text-[#26352a]"
                 }`}
               >
-                <Flame size={14} className={temperature === "HOT" ? "text-[#f3a762]" : ""} />
+                <Flame size={13} className={temperature === "HOT" ? "text-[#f3a762]" : ""} />
                 HOT
               </button>
               <button
@@ -215,7 +325,7 @@ export function DishFormModal({
                     : "text-[#5c685e] hover:text-[#26352a]"
                 }`}
               >
-                <Snowflake size={14} className={temperature === "COLD" ? "text-[#7bc0ea]" : ""} />
+                <Snowflake size={13} className={temperature === "COLD" ? "text-[#7bc0ea]" : ""} />
                 COLD
               </button>
             </div>
@@ -246,14 +356,24 @@ export function DishFormModal({
           />
         </div>
 
-        {/* Row 3: Kitchen Station */}
-        <Input
-          label="Kitchen Station Identifier (Optional)"
-          placeholder="e.g. station_grill, station_salad"
-          value={kitchenStationId}
-          onChange={(e) => setKitchenStationId(e.target.value)}
-          hint="ID of the preparation line / kitchen station."
-        />
+        {/* Row 3: Kitchen Station Dropdown */}
+        <div>
+          <label className="text-xs font-semibold tracking-wide text-[#4c594f] block mb-1.5">
+            Kitchen Preparation Station (Optional)
+          </label>
+          <select
+            value={kitchenStationId}
+            onChange={(e) => setKitchenStationId(e.target.value)}
+            className="h-10 w-full rounded-xl border border-[#d9d2c2] bg-white px-3.5 text-xs text-[#26352a] focus:border-[#294d33] focus:outline-none"
+          >
+            <option value="">None / Unassigned</option>
+            {stationsList.map((station) => (
+              <option key={station.id} value={station.id}>
+                {station.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Allergens Selection */}
         <div>
@@ -263,7 +383,7 @@ export function DishFormModal({
           {allergensList.length === 0 ? (
             <p className="text-xs text-[#8a988d] italic">No allergens registered in system yet.</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {allergensList.map((allergen) => {
                 const checked = selectedAllergens.includes(allergen.id);
                 return (
@@ -271,7 +391,7 @@ export function DishFormModal({
                     key={allergen.id}
                     type="button"
                     onClick={() => toggleAllergen(allergen.id)}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium border transition-all ${
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-medium border transition-all ${
                       checked
                         ? "bg-[#a34747]/15 border-[#a34747] text-[#8c3030] font-semibold"
                         : "bg-white/80 border-[#d9d2c2] text-[#5c685e] hover:border-[#b7b6aa]"
@@ -294,7 +414,7 @@ export function DishFormModal({
           {dietaryTagsList.length === 0 ? (
             <p className="text-xs text-[#8a988d] italic">No dietary tags registered yet.</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {dietaryTagsList.map((tag) => {
                 const checked = selectedDietaryTags.includes(tag.id);
                 return (
@@ -302,7 +422,7 @@ export function DishFormModal({
                     key={tag.id}
                     type="button"
                     onClick={() => toggleDietaryTag(tag.id)}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium border transition-all ${
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-medium border transition-all ${
                       checked
                         ? "bg-[#294d33]/15 border-[#294d33] text-[#22442b] font-semibold"
                         : "bg-white/80 border-[#d9d2c2] text-[#5c685e] hover:border-[#b7b6aa]"

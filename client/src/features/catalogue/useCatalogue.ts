@@ -377,3 +377,10 @@ export function useUpdateDietaryTag() {
     },
   });
 }
+
+export function useKitchenStations() {
+  return useQuery({
+    queryKey: ["catalogue", "kitchen-stations"] as const,
+    queryFn: () => catalogueApi.listKitchenStations(),
+  });
+}

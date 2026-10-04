@@ -140,7 +140,6 @@ export function ReferenceDataModal({ open, onClose }: ReferenceDataModalProps) {
                   className="flex items-center justify-between p-3 text-xs hover:bg-[#fbfaf6] transition-colors"
                 >
                   <span className="font-semibold text-[#26352a]">⚠️ {item.name}</span>
-                  <span className="text-[10px] font-mono text-[#9fa89e]">ID: {item.id}</span>
                 </div>
               ))
             )
@@ -155,7 +154,6 @@ export function ReferenceDataModal({ open, onClose }: ReferenceDataModalProps) {
                 className="flex items-center justify-between p-3 text-xs hover:bg-[#fbfaf6] transition-colors"
               >
                 <span className="font-semibold text-[#26352a]">🌱 {item.name}</span>
-                <span className="text-[10px] font-mono text-[#9fa89e]">ID: {item.id}</span>
               </div>
             ))
           )}

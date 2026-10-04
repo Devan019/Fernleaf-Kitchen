@@ -54,11 +54,28 @@ export const catalogueApi = {
   getDish: (id: string): Promise<Dish> =>
     client.get<Dish>(`/api/catalogue/dishes/${id}`),
 
-  createDish: (data: CreateDishRequest): Promise<Dish> =>
-    client.post<Dish>("/api/catalogue/dishes", data),
+  createDish: async (data: CreateDishRequest): Promise<Dish> => {
+    const { isActive, ...payload } = data;
+    const dish = await client.post<Dish>("/api/catalogue/dishes", payload);
+    if (typeof isActive === "boolean" && !isActive) {
+      return await client.patch<Dish>(`/api/catalogue/dishes/${dish.id}/status`, { isActive });
+    }
+    return dish;
+  },
 
-  updateDish: (id: string, data: UpdateDishRequest): Promise<Dish> =>
-    client.patch<Dish>(`/api/catalogue/dishes/${id}`, data),
+  updateDish: async (id: string, data: UpdateDishRequest): Promise<Dish> => {
+    const { isActive, ...payload } = data;
+    let dish: Dish;
+    if (Object.keys(payload).length > 0) {
+      dish = await client.patch<Dish>(`/api/catalogue/dishes/${id}`, payload);
+    } else {
+      dish = await client.get<Dish>(`/api/catalogue/dishes/${id}`);
+    }
+    if (typeof isActive === "boolean") {
+      dish = await client.patch<Dish>(`/api/catalogue/dishes/${id}/status`, { isActive });
+    }
+    return dish;
+  },
 
   updateDishStatus: (id: string, isActive: boolean): Promise<Dish> =>
     client.patch<Dish>(`/api/catalogue/dishes/${id}/status`, { isActive }),
@@ -90,11 +107,28 @@ export const catalogueApi = {
   getOption: (id: string): Promise<Option> =>
     client.get<Option>(`/api/catalogue/options/${id}`),
 
-  createOption: (data: CreateOptionRequest): Promise<Option> =>
-    client.post<Option>("/api/catalogue/options", data),
+  createOption: async (data: CreateOptionRequest): Promise<Option> => {
+    const { isActive, ...payload } = data;
+    const option = await client.post<Option>("/api/catalogue/options", payload);
+    if (typeof isActive === "boolean" && !isActive) {
+      return await client.patch<Option>(`/api/catalogue/options/${option.id}/status`, { isActive });
+    }
+    return option;
+  },
 
-  updateOption: (id: string, data: UpdateOptionRequest): Promise<Option> =>
-    client.patch<Option>(`/api/catalogue/options/${id}`, data),
+  updateOption: async (id: string, data: UpdateOptionRequest): Promise<Option> => {
+    const { isActive, ...payload } = data;
+    let option: Option;
+    if (Object.keys(payload).length > 0) {
+      option = await client.patch<Option>(`/api/catalogue/options/${id}`, payload);
+    } else {
+      option = await client.get<Option>(`/api/catalogue/options/${id}`);
+    }
+    if (typeof isActive === "boolean") {
+      option = await client.patch<Option>(`/api/catalogue/options/${id}/status`, { isActive });
+    }
+    return option;
+  },
 
   updateOptionStatus: (id: string, isActive: boolean): Promise<Option> =>
     client.patch<Option>(`/api/catalogue/options/${id}/status`, { isActive }),

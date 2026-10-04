@@ -46,10 +46,10 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
 
       {/* Panel */}
       <div
-        className={`relative z-10 w-full ${widthClass} overflow-hidden rounded-3xl border border-[#d9d2c2] bg-[#fbfaf6] shadow-[0_25px_70px_rgba(20,40,26,0.18)]`}
+        className={`relative z-10 w-full ${widthClass} max-h-[80vh] flex flex-col overflow-hidden rounded-3xl border border-[#d9d2c2] bg-[#fbfaf6] shadow-[0_25px_70px_rgba(20,40,26,0.18)]`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#eae5d8] px-7 py-5 bg-[#f5f1e6]/60">
+        <div className="flex shrink-0 items-center justify-between border-b border-[#eae5d8] px-7 py-4.5 bg-[#f5f1e6]/60">
           <h2
             id="modal-title"
             className="font-serif text-lg font-semibold text-[#26352a]"
@@ -66,7 +66,7 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
         </div>
 
         {/* Body */}
-        <div className="px-7 py-6">{children}</div>
+        <div className="px-7 py-5 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>
   );

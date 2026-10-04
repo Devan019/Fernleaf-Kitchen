@@ -164,7 +164,7 @@ export default function MenuPage() {
                 icon={<Eye size={15} />}
                 onClick={() => setPreviewOpen(true)}
               >
-                Employee Menu Simulator
+                Preview Employee Menu
               </Button>
               {isAdmin && (
                 <Button
@@ -430,7 +430,8 @@ function CategoryCard({
             </div>
 
             <p className="text-xs text-[#78857a] mt-0.5">
-              {category.dishesCount ?? dishes.length} dishes assigned
+              {category.itemsCount ?? category.dishesCount ?? dishes.length} dish
+              {(category.itemsCount ?? category.dishesCount ?? dishes.length) === 1 ? "" : "es"} assigned
             </p>
           </div>
         </div>

@@ -32,13 +32,7 @@ export function Header({ title }: HeaderProps) {
       {/* Right cluster */}
       <div className="flex items-center gap-3">
         {/* Notifications (placeholder) */}
-        <button
-          aria-label="Notifications"
-          className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#d9d2c2]/60 bg-white/70 text-[#4c594f] shadow-sm hover:bg-white hover:text-[#26352a] transition-all"
-        >
-          <Bell size={17} />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#c8a96b]" />
-        </button>
+       
 
         {/* User menu */}
         <div className="relative" ref={menuRef}>

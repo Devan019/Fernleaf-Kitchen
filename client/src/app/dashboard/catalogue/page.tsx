@@ -17,12 +17,14 @@ import { ReferenceDataModal } from "@/features/catalogue/ReferenceDataModal";
 import {
   useCreateDish,
   useCreateOption,
+  useDeleteDishImage,
   useDishes,
   useOptions,
   useUpdateDish,
   useUpdateDishStatus,
   useUpdateOption,
   useUpdateOptionStatus,
+  useUploadDishImage,
 } from "@/features/catalogue/useCatalogue";
 import { getErrorMessage } from "@/lib/utils/errors";
 import type {
@@ -42,6 +44,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Settings,
   Settings2,
   Snowflake,
   UtensilsCrossed,
@@ -97,6 +100,8 @@ export default function CataloguePage() {
   const createDishMutation = useCreateDish();
   const updateDishMutation = useUpdateDish("");
   const updateDishStatusMutation = useUpdateDishStatus();
+  const uploadDishImageMutation = useUploadDishImage();
+  const deleteDishImageMutation = useDeleteDishImage();
 
   const createOptionMutation = useCreateOption();
   const updateOptionMutation = useUpdateOption("");
@@ -116,17 +121,32 @@ export default function CataloguePage() {
 
   // ── Dish Handlers ──────────────────────────────────────────────────────────
 
-  const handleCreateOrUpdateDish = async (data: CreateDishRequest | UpdateDishRequest) => {
+  const handleCreateOrUpdateDish = async (
+    data: CreateDishRequest | UpdateDishRequest,
+    imageFile?: File | null,
+    removeImage?: boolean,
+  ) => {
     setDishFormError(null);
     try {
+      let dishId = editingDish?.id;
       if (editingDish) {
         await updateDishMutation.mutateAsync({
           id: editingDish.id,
           data: data as UpdateDishRequest,
         });
       } else {
-        await createDishMutation.mutateAsync(data as CreateDishRequest);
+        const created = await createDishMutation.mutateAsync(data as CreateDishRequest);
+        dishId = created.id;
       }
+
+      if (dishId) {
+        if (imageFile) {
+          await uploadDishImageMutation.mutateAsync({ id: dishId, file: imageFile });
+        } else if (removeImage && editingDish?.imageUrl) {
+          await deleteDishImageMutation.mutateAsync(dishId);
+        }
+      }
+
       setDishFormOpen(false);
       setEditingDish(null);
     } catch (err) {
@@ -192,7 +212,7 @@ export default function CataloguePage() {
             <div className="flex items-center gap-2.5">
               <Button
                 variant="secondary"
-                icon={<Settings2 size={15} />}
+                icon={<Settings size={15} />}
                 onClick={() => setRefDataOpen(true)}
               >
                 Allergens & Tags

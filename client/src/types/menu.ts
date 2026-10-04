@@ -22,9 +22,12 @@ export interface MenuCategory {
   displayOrder: number;
   isSecret: boolean;
   isActive: boolean;
+  itemsCount?: number;
   dishesCount?: number;
   dishes?: MenuDish[];
+  items?: MenuDish[] | any[];
   hiddenCompanies?: { id: string; name: string }[];
+  hiddenCompanyIds?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
