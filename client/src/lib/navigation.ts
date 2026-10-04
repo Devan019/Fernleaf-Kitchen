@@ -2,6 +2,7 @@ import type { UserRole } from "@/types";
 import {
   BadgeDollarSign,
   BookOpenCheck,
+  Building2,
   LayoutDashboard,
   UtensilsCrossed,
   Users,
@@ -37,6 +38,12 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Pricing",
     href: "/dashboard/pricing",
     icon: BadgeDollarSign,
+    allowedRoles: ["ADMIN", "KITCHEN", "DISPATCH"],
+  },
+  {
+    label: "Companies",
+    href: "/dashboard/companies",
+    icon: Building2,
     allowedRoles: ["ADMIN", "KITCHEN", "DISPATCH"],
   },
   {

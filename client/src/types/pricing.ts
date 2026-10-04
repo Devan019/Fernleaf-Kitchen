@@ -110,11 +110,6 @@ export interface CompanyListItem {
   priceTier?: { id: string; name: string } | null;
 }
 
-export interface PaginatedCompanies {
-  data: CompanyListItem[];
-  meta: PaginationMeta;
-}
-
 export interface CreatePriceTierRequest {
   name: string;
   description?: string;

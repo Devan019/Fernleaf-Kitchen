@@ -27,3 +27,36 @@ export interface PaginatedEmployees {
   data: EmployeeSummary[];
   meta: PaginationMeta;
 }
+
+export interface CreateEmployeeRequest {
+  name: string;
+  email?: string;
+  companyId: string;
+  canChooseDeliveryAddress?: boolean;
+  canChangeDeliveryTime?: boolean;
+  canChangePackaging?: boolean;
+  allergenIds?: string[];
+  dietaryTagIds?: string[];
+  isActive?: boolean;
+}
+
+export interface UpdateEmployeeRequest {
+  name?: string;
+  email?: string;
+  companyId?: string;
+  canChooseDeliveryAddress?: boolean;
+  canChangeDeliveryTime?: boolean;
+  canChangePackaging?: boolean;
+  isActive?: boolean;
+}
+
+export interface UpdateEmployeePermissionsRequest {
+  canChooseDeliveryAddress?: boolean;
+  canChangeDeliveryTime?: boolean;
+  canChangePackaging?: boolean;
+}
+
+export interface UpdateEmployeePreferencesRequest {
+  allergenIds?: string[];
+  dietaryTagIds?: string[];
+}

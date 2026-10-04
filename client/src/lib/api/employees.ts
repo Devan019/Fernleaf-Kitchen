@@ -1,5 +1,12 @@
 import { client } from "./client";
-import type { EmployeeSummary, PaginatedEmployees } from "@/types";
+import type {
+  CreateEmployeeRequest,
+  EmployeeSummary,
+  PaginatedEmployees,
+  UpdateEmployeePermissionsRequest,
+  UpdateEmployeePreferencesRequest,
+  UpdateEmployeeRequest,
+} from "@/types";
 
 export interface ListEmployeesParams {
   page?: number;
@@ -23,7 +30,7 @@ export const employeesApi = {
     if (params.isActive !== undefined) qs.set("isActive", String(params.isActive));
     const query = qs.toString();
     const res = await client.get<any>(`/api/employees${query ? `?${query}` : ""}`);
-    
+
     if (Array.isArray(res)) {
       return {
         data: res,
@@ -57,4 +64,59 @@ export const employeesApi = {
    */
   getById: (id: string): Promise<EmployeeSummary> =>
     client.get<EmployeeSummary>(`/api/employees/${id}`),
+
+  /**
+   * POST /api/employees
+   * Create a new customer employee profile linked to an existing company.
+   */
+  create: (data: CreateEmployeeRequest): Promise<EmployeeSummary> =>
+    client.post<EmployeeSummary>("/api/employees", data),
+
+  /**
+   * PATCH /api/employees/:id
+   * Update employee name, email, company association (relocating employee), or active status.
+   */
+  update: (id: string, data: UpdateEmployeeRequest): Promise<EmployeeSummary> =>
+    client.patch<EmployeeSummary>(`/api/employees/${id}`, data),
+
+  /**
+   * DELETE /api/employees/:id
+   * Soft-deactivates an employee account (isActive: false).
+   */
+  deactivate: (id: string): Promise<EmployeeSummary> =>
+    client.delete<EmployeeSummary>(`/api/employees/${id}`),
+
+  /**
+   * PATCH /api/employees/:id/permissions
+   * Updates business permission flags.
+   */
+  updatePermissions: (
+    id: string,
+    data: UpdateEmployeePermissionsRequest,
+  ): Promise<EmployeeSummary> =>
+    client.patch<EmployeeSummary>(`/api/employees/${id}/permissions`, data),
+
+  /**
+   * PATCH /api/employees/:id/preferences
+   * Updates allergen warnings and dietary tag preferences simultaneously.
+   */
+  updatePreferences: (
+    id: string,
+    data: UpdateEmployeePreferencesRequest,
+  ): Promise<EmployeeSummary> =>
+    client.patch<EmployeeSummary>(`/api/employees/${id}/preferences`, data),
+
+  /**
+   * PUT /api/employees/:id/allergies
+   * Replaces all allergen warnings linked to employee.
+   */
+  replaceAllergies: (id: string, allergenIds: string[]): Promise<EmployeeSummary> =>
+    client.put<EmployeeSummary>(`/api/employees/${id}/allergies`, { allergenIds }),
+
+  /**
+   * PUT /api/employees/:id/dietary-preferences
+   * Replaces all dietary tag preferences linked to employee.
+   */
+  replaceDietaryPreferences: (id: string, dietaryTagIds: string[]): Promise<EmployeeSummary> =>
+    client.put<EmployeeSummary>(`/api/employees/${id}/dietary-preferences`, { dietaryTagIds }),
 };
