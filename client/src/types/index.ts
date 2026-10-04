@@ -66,3 +66,9 @@ export interface ApiError {
   message: string | string[];
   error?: string;
 }
+
+// ─── Re-exports ───────────────────────────────────────────────────────────────
+
+export * from "./catalogue";
+export * from "./menu";
+export * from "./pricing";

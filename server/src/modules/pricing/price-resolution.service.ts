@@ -427,6 +427,62 @@ export class PriceResolutionService {
   }
 
   /**
+   * Resolves a dish price for a company through their effective company tier.
+   */
+  async resolveCompanyDishPrice(
+    companyId: string,
+    dishId: string,
+  ): Promise<ResolvedPriceResult> {
+    const tier = await this.getCompanyPriceTier(companyId);
+    return this.resolveDishPrice(dishId, tier.id);
+  }
+
+  /**
+   * Resolves an option price for a company through their effective company tier.
+   */
+  async resolveCompanyOptionPrice(
+    companyId: string,
+    optionId: string,
+  ): Promise<ResolvedPriceResult> {
+    const tier = await this.getCompanyPriceTier(companyId);
+    return this.resolveOptionPrice(optionId, tier.id);
+  }
+
+  /**
+   * Retrieves the effective pricing context summary for a company.
+   */
+  async getCompanyPricingContext(
+    companyId: string,
+  ): Promise<EffectivePricingContext> {
+    const company = await this.prisma.company.findUnique({
+      where: { id: companyId },
+      include: { priceTier: true },
+    });
+
+    if (!company) {
+      throw new NotFoundException(`Company with ID '${companyId}' not found`);
+    }
+
+    let effectiveTier = company.priceTier;
+    let isDefaultTier = false;
+
+    if (!effectiveTier || !effectiveTier.isActive) {
+      effectiveTier = await this.getDefaultPriceTier();
+      isDefaultTier = true;
+    } else {
+      isDefaultTier = effectiveTier.isDefault;
+    }
+
+    return {
+      companyId: company.id,
+      companyName: company.name,
+      priceTierId: effectiveTier.id,
+      priceTierName: effectiveTier.name,
+      isDefaultTier,
+    };
+  }
+
+  /**
    * Resolves a dish price for an employee through their effective company tier.
    */
   async resolveEmployeeDishPrice(

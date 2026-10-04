@@ -339,6 +339,49 @@ export class PricingController {
   // Resolution Query Endpoints
   // ---------------------------------------------------------------------------
 
+  @Get('resolve/company/:companyId/dish/:dishId')
+  @RequirePermissions(Permission.PRICING_READ)
+  @ApiOperation({ summary: 'Resolve effective dish price for a company' })
+  @ApiParam({ name: 'companyId', description: 'Company ID' })
+  @ApiParam({ name: 'dishId', description: 'Dish ID' })
+  @ApiResponse({ status: 200, description: 'Resolved price details.' })
+  resolveCompanyDishPrice(
+    @Param('companyId') companyId: string,
+    @Param('dishId') dishId: string,
+  ): Promise<ResolvedPriceResult> {
+    return this.priceResolutionService.resolveCompanyDishPrice(
+      companyId,
+      dishId,
+    );
+  }
+
+  @Get('resolve/company/:companyId/option/:optionId')
+  @RequirePermissions(Permission.PRICING_READ)
+  @ApiOperation({ summary: 'Resolve effective option price for a company' })
+  @ApiParam({ name: 'companyId', description: 'Company ID' })
+  @ApiParam({ name: 'optionId', description: 'Option ID' })
+  @ApiResponse({ status: 200, description: 'Resolved option price details.' })
+  resolveCompanyOptionPrice(
+    @Param('companyId') companyId: string,
+    @Param('optionId') optionId: string,
+  ): Promise<ResolvedPriceResult> {
+    return this.priceResolutionService.resolveCompanyOptionPrice(
+      companyId,
+      optionId,
+    );
+  }
+
+  @Get('resolve/company/:companyId/context')
+  @RequirePermissions(Permission.PRICING_READ)
+  @ApiOperation({ summary: 'Get company pricing resolution context' })
+  @ApiParam({ name: 'companyId', description: 'Company ID' })
+  @ApiResponse({ status: 200, description: 'Effective pricing context.' })
+  getCompanyPricingContext(
+    @Param('companyId') companyId: string,
+  ): Promise<EffectivePricingContext> {
+    return this.priceResolutionService.getCompanyPricingContext(companyId);
+  }
+
   @Get('resolve/employee/:employeeId/dish/:dishId')
   @RequirePermissions(Permission.PRICING_READ)
   @ApiOperation({ summary: 'Resolve effective dish price for an employee' })

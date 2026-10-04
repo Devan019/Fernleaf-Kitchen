@@ -449,6 +449,86 @@ Required.
 
 ### Section D: Runtime Price Resolution
 
+# Resolve Company Dish Price
+
+### GET
+`/api/pricing/resolve/company/:companyId/dish/:dishId`
+
+### Description
+Authoritatively resolves the exact unit price a company pays for a dish, walking up the company price tier hierarchy with overrides and derivations.
+
+### Authentication
+Required.
+
+### Authorization
+`Permission.PRICING_READ`.
+
+### Response
+- **Status Code**: `200 OK`
+
+```json
+{
+  "status": "RESOLVED",
+  "price": "6.00",
+  "source": "OVERRIDE",
+  "isOverridden": true,
+  "isDerived": false,
+  "missing": false,
+  "tierId": "tier_std_corp",
+  "tierName": "Standard Corporate"
+}
+```
+
+---
+
+# Resolve Company Option Price
+
+### GET
+`/api/pricing/resolve/company/:companyId/option/:optionId`
+
+### Description
+Authoritatively resolves the exact price a company pays for an option based on their assigned tier and derivations.
+
+### Authentication
+Required.
+
+### Authorization
+`Permission.PRICING_READ`.
+
+### Response
+- **Status Code**: `200 OK`
+
+---
+
+# Get Company Pricing Context
+
+### GET
+`/api/pricing/resolve/company/:companyId/context`
+
+### Description
+Returns the effective pricing metadata for a company, including company ID, company name, resolved price tier, and derivation rules.
+
+### Authentication
+Required.
+
+### Authorization
+`Permission.PRICING_READ`.
+
+### Response
+- **Status Code**: `200 OK`
+
+```json
+{
+  "companyId": "cmp_123456789",
+  "companyName": "Acme Corporation",
+  "priceTierId": "tier_std_corp",
+  "priceTierName": "Standard Corporate",
+  "isDefaultTier": true
+}
+```
+
+---
+
 # Resolve Employee Dish Price
 
 ### GET

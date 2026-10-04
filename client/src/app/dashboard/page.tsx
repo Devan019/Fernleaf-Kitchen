@@ -1,14 +1,16 @@
 "use client";
 
 import { Header } from "@/components/Header";
-import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/features/auth/AuthContext";
 import {
   Activity,
   ArrowRight,
+  BadgeDollarSign,
+  BookOpenCheck,
   Clock,
   ShieldCheck,
   Sparkles,
+  UtensilsCrossed,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -36,14 +38,14 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 mb-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#294d33]/10 px-3 py-1 text-xs font-semibold text-[#294d33] border border-[#294d33]/15">
               <Sparkles size={12} className="text-[#c8a96b]" />
-              Operations Workspace
+              Fernleaf Kitchen Console
             </span>
           </div>
           <h2 className="font-serif text-3xl md:text-4xl font-bold tracking-tight text-[#26352a]">
             {greeting}, {currentUser?.name?.split(" ")[0]}
           </h2>
           <p className="mt-1.5 text-sm md:text-base text-[#6b776c]">
-            Welcome to the Fernleaf Kitchen centralized operations console.
+            Welcome to the centralized catering, menu curation, and pricing intelligence system.
           </p>
         </div>
 
@@ -87,13 +89,13 @@ export default function DashboardPage() {
               </span>
             </div>
             <p className="text-xs font-medium uppercase tracking-wider text-[#78857a]">
-              Operations Status
+              Engine Services
             </p>
             <p className="font-serif text-xl font-bold text-[#26352a] mt-0.5">
               Online & Synchronized
             </p>
             <p className="mt-2 text-xs text-[#78857a]">
-              Secure connection established
+              Catalogue, Menu & Pricing APIs active
             </p>
           </div>
 
@@ -104,7 +106,7 @@ export default function DashboardPage() {
                 <Clock size={20} />
               </div>
               <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#8a988d]">
-                Time
+                Service Date
               </span>
             </div>
             <p className="text-xs font-medium uppercase tracking-wider text-[#78857a]">
@@ -118,48 +120,122 @@ export default function DashboardPage() {
               })}
             </p>
             <p className="mt-2 text-xs text-[#78857a]">
-              Standard kitchen service hours
+              Standard kitchen preparation shift
             </p>
           </div>
         </div>
 
-        {/* Quick Actions & Navigation */}
-        {currentUser?.role === "ADMIN" && (
-          <div className="mt-10">
-            <div className="mb-4">
-              <h3 className="font-serif text-lg font-semibold text-[#26352a]">
-                Quick Management
-              </h3>
-              <p className="text-xs text-[#78857a]">
-                Direct links to administrative tools and controls.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Operations Hub Navigation */}
+        <div className="mt-8">
+          <div className="mb-4">
+            <h3 className="font-serif text-lg font-semibold text-[#26352a]">
+              Operational Modules
+            </h3>
+            <p className="text-xs text-[#78857a]">
+              Direct access to kitchen production, menu composition, and price tiers.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Catalogue */}
+            <Link
+              href="/dashboard/catalogue"
+              className="group flex flex-col justify-between rounded-2xl border border-[#d9d2c2] bg-[#fbfaf6]/90 p-5 shadow-sm transition-all hover:bg-white hover:border-[#c5bcab] hover:shadow-md"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#294d33] text-white shadow-sm transition-transform group-hover:scale-105">
+                    <UtensilsCrossed size={18} />
+                  </div>
+                  <ArrowRight
+                    size={16}
+                    className="text-[#78857a] transition-transform group-hover:translate-x-1 group-hover:text-[#294d33]"
+                  />
+                </div>
+                <p className="text-sm font-semibold text-[#26352a]">
+                  Catalogue & Dishes
+                </p>
+                <p className="text-xs text-[#78857a] mt-1">
+                  Master dishes, SKUs, option groups, allergens & portion sizes.
+                </p>
+              </div>
+            </Link>
+
+            {/* Menu */}
+            <Link
+              href="/dashboard/menu"
+              className="group flex flex-col justify-between rounded-2xl border border-[#d9d2c2] bg-[#fbfaf6]/90 p-5 shadow-sm transition-all hover:bg-white hover:border-[#c5bcab] hover:shadow-md"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#35617a] text-white shadow-sm transition-transform group-hover:scale-105">
+                    <BookOpenCheck size={18} />
+                  </div>
+                  <ArrowRight
+                    size={16}
+                    className="text-[#78857a] transition-transform group-hover:translate-x-1 group-hover:text-[#35617a]"
+                  />
+                </div>
+                <p className="text-sm font-semibold text-[#26352a]">
+                  Menu Architecture
+                </p>
+                <p className="text-xs text-[#78857a] mt-1">
+                  Categories, dish ordering sequences, secret links & company visibility.
+                </p>
+              </div>
+            </Link>
+
+            {/* Pricing */}
+            <Link
+              href="/dashboard/pricing"
+              className="group flex flex-col justify-between rounded-2xl border border-[#d9d2c2] bg-[#fbfaf6]/90 p-5 shadow-sm transition-all hover:bg-white hover:border-[#c5bcab] hover:shadow-md"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#8c6b29] text-white shadow-sm transition-transform group-hover:scale-105">
+                    <BadgeDollarSign size={18} />
+                  </div>
+                  <ArrowRight
+                    size={16}
+                    className="text-[#78857a] transition-transform group-hover:translate-x-1 group-hover:text-[#8c6b29]"
+                  />
+                </div>
+                <p className="text-sm font-semibold text-[#26352a]">
+                  Price Tiers & Rules
+                </p>
+                <p className="text-xs text-[#78857a] mt-1">
+                  Cost multipliers, tier percentage markups, explicit overrides & audits.
+                </p>
+              </div>
+            </Link>
+
+            {/* Users */}
+            {currentUser?.role === "ADMIN" && (
               <Link
                 href="/dashboard/users"
-                className="group flex items-center justify-between rounded-2xl border border-[#d9d2c2] bg-[#fbfaf6]/90 p-5 shadow-sm transition-all hover:bg-white hover:border-[#c5bcab] hover:shadow-md"
+                className="group flex flex-col justify-between rounded-2xl border border-[#d9d2c2] bg-[#fbfaf6]/90 p-5 shadow-sm transition-all hover:bg-white hover:border-[#c5bcab] hover:shadow-md"
               >
-                <div className="flex items-center gap-3.5">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#294d33] text-white shadow-sm transition-transform group-hover:scale-105">
-                    <Users size={18} />
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6c487a] text-white shadow-sm transition-transform group-hover:scale-105">
+                      <Users size={18} />
+                    </div>
+                    <ArrowRight
+                      size={16}
+                      className="text-[#78857a] transition-transform group-hover:translate-x-1 group-hover:text-[#6c487a]"
+                    />
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#26352a]">
-                      Staff Accounts
-                    </p>
-                    <p className="text-xs text-[#78857a]">
-                      Create, edit & manage staff roles
-                    </p>
-                  </div>
+                  <p className="text-sm font-semibold text-[#26352a]">
+                    Staff Accounts
+                  </p>
+                  <p className="text-xs text-[#78857a] mt-1">
+                    Manage kitchen personnel, dispatchers, drivers, and admins.
+                  </p>
                 </div>
-                <ArrowRight
-                  size={16}
-                  className="text-[#78857a] transition-transform group-hover:translate-x-1 group-hover:text-[#294d33]"
-                />
               </Link>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </main>
     </>
   );

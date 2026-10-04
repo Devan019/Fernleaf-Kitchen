@@ -18,16 +18,23 @@ async function request<T>(
   options: RequestInit = {},
 ): Promise<T> {
   let res: Response;
+  const isFormData = options.body instanceof FormData;
+  
+  const headers: Record<string, string> = {};
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+
   try {
     res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       credentials: "include", // send HTTP-only cookie automatically
       headers: {
-        "Content-Type": "application/json",
+        ...headers,
         ...options.headers,
       },
     });
-  } catch (networkErr) {
+  } catch {
     // Network failure (no connection, CORS, etc.)
     throw new ApiClientError(0, "Network error. Is the server running?", {
       statusCode: 0,
@@ -65,14 +72,36 @@ export const client = {
     request<T>(endpoint, {
       ...options,
       method: "POST",
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body:
+        body instanceof FormData
+          ? body
+          : body !== undefined
+            ? JSON.stringify(body)
+            : undefined,
+    }),
+  put: <T>(endpoint: string, body?: unknown, options?: RequestInit) =>
+    request<T>(endpoint, {
+      ...options,
+      method: "PUT",
+      body:
+        body instanceof FormData
+          ? body
+          : body !== undefined
+            ? JSON.stringify(body)
+            : undefined,
     }),
   patch: <T>(endpoint: string, body?: unknown, options?: RequestInit) =>
     request<T>(endpoint, {
       ...options,
       method: "PATCH",
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body:
+        body instanceof FormData
+          ? body
+          : body !== undefined
+            ? JSON.stringify(body)
+            : undefined,
     }),
   delete: <T>(endpoint: string, options?: RequestInit) =>
     request<T>(endpoint, { ...options, method: "DELETE" }),
 };
+

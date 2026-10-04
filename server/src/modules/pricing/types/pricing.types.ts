@@ -35,8 +35,8 @@ export interface ResolvedPriceResult {
  * Context describing how an employee's effective tier was resolved.
  */
 export interface EffectivePricingContext {
-  employeeId: string;
-  employeeName: string;
+  employeeId?: string;
+  employeeName?: string;
   companyId: string;
   companyName: string;
   priceTierId: string;
