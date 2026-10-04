@@ -79,5 +79,6 @@ export * from "./menu";
 export * from "./orders";
 export * from "./permissions";
 export * from "./pricing";
+export * from "./settings";
 
 

@@ -9,6 +9,7 @@ import {
   Navigation,
   ReceiptText,
   ShoppingBag,
+  SlidersHorizontal,
   Truck,
   Users,
   UtensilsCrossed,
@@ -86,6 +87,12 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Users",
     href: "/dashboard/users",
     icon: Users,
+    allowedRoles: ["ADMIN"],
+  },
+  {
+    label: "Settings",
+    href: "/dashboard/settings",
+    icon: SlidersHorizontal,
     allowedRoles: ["ADMIN"],
   },
 ];
