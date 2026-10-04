@@ -26,7 +26,8 @@
     "pri:init": "prisma init",
     "pri:gen": "prisma generate",
     "pri:migrate": "prisma migrate dev --preview-feature",
-    "seed": "bun run prisma/seed.ts"
+    "seed": "bun run prisma/seed.ts",
+    "seed:test": "bun run seed/index.ts"
   },
   "prisma": {
     "seed": "bun run prisma/seed.ts"
