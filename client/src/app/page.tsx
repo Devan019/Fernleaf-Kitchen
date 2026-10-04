@@ -1,17 +1,26 @@
 "use client";
 
-import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/features/auth/AuthContext";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function UsersPage() {
+export default function RootPage() {
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+
   useEffect(() => {
-    async function getUsers() {
-    const data = await apiFetch("/");
-      console.log(data);
+    if (loading) return;
+    if (isAuthenticated) {
+      router.replace("/dashboard");
+    } else {
+      router.replace("/login");
     }
+  }, [isAuthenticated, loading, router]);
 
-    getUsers();
-  }, []);
-
-  return <h1>Users</h1>;
+  // Show spinner while auth is resolving to prevent flash
+  return (
+    <div className="flex h-screen items-center justify-center bg-slate-50">
+      <span className="loader" aria-label="Loading…" />
+    </div>
+  );
 }
