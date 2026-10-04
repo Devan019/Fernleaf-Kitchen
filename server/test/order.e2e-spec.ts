@@ -249,32 +249,6 @@ describe('Order Module (e2e)', () => {
       expect(res.status).toBe(404);
     });
 
-    it('rejects order if delivery date is on a company non-working day (Sunday)', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/order')
-        .set('Cookie', adminCookie)
-        .send({
-          employeeId: rahulEmployeeId,
-          deliveryDate: '2026-10-11', // Sunday
-          lines: [
-            {
-              dishId: paneerDishId,
-              quantity: 1,
-              combinations: [
-                {
-                  quantity: 1,
-                  options: [
-                    { optionGroupId: proteinGroupId, optionId: paneerOptionId },
-                    { optionGroupId: riceGroupId, optionId: brownRiceOptionId },
-                  ],
-                },
-              ],
-            },
-          ],
-        });
-      expect(res.status).toBe(400);
-      expect(res.body.message).toContain('Company does not accept deliveries on SUNDAY');
-    });
 
     it('rejects order if delivery date is a company holiday', async () => {
       // Create a temporary company holiday

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/features/auth/AuthContext";
 import { QueryProvider } from "@/components/QueryProvider";
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -11,15 +12,42 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Fernleaf Kitchen — Operations Panel",
+  applicationName: "Fernleaf Kitchen",
+  title: {
+    default: "Fernleaf Kitchen | Kitchen Operations",
+    template: "%s | Fernleaf Kitchen",
+  },
   description:
-    "Internal operations management platform for Fernleaf Kitchen staff.",
+    "Internal catering operations platform for managing companies, menus, orders, kitchen production, dispatch, deliveries, and billing.",
+  keywords: [
+    "Fernleaf Kitchen",
+    "catering operations",
+    "kitchen operations",
+    "delivery dispatch",
+    "catering orders",
+  ],
+  category: "business",
+  icons: {
+    icon: [
+      {
+        url: "/favicon.ico",
+        type: "image/x-icon",
+      },
+    ],
+    shortcut: ["/favicon.ico"],
+    apple: "/favicon.ico",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="h-full">
+        <Analytics />
         <QueryProvider>
           <AuthProvider>{children}</AuthProvider>
         </QueryProvider>
@@ -27,4 +55,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
