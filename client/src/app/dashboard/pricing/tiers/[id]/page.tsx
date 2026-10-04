@@ -178,7 +178,7 @@ export default function TierDetailPage() {
   const dishes = dishesData?.data ?? [];
 
   return (
-    <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
+    <ProtectedRoute requiredRole={["ADMIN"]}>
       <Header title="Tier Price Matrix" />
       <main className="flex-1 overflow-y-auto p-6 md:p-8">
         {/* Back breadcrumb */}

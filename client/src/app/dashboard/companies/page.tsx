@@ -161,7 +161,7 @@ export default function CompaniesPage() {
   };
 
   return (
-    <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
+    <ProtectedRoute requiredRole={["ADMIN"]}>
       <Header title="Companies" />
       <main className="flex-1 overflow-y-auto p-6 md:p-8">
         {/* Page Header */}

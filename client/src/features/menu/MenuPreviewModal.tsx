@@ -160,7 +160,7 @@ export function MenuPreviewModal({ open, onClose }: MenuPreviewModalProps) {
                 ) : (
                   <div className="flex items-center gap-2 text-xs text-[#78857a]">
                     <User size={15} className="text-[#9fa89e]" />
-                    <span>Choose a corporate employee to simulate their live portal...</span>
+                    <span>Choose a corporate employee to preview their live portal...</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-xs font-semibold text-[#5c685e]">
@@ -240,13 +240,13 @@ export function MenuPreviewModal({ open, onClose }: MenuPreviewModalProps) {
           )}
         </div>
 
-        {/* ── Menu Simulation Output ── */}
+        {/* ── Menu Preview Output ── */}
         {!selectedEmployeeId ? (
           <div className="rounded-2xl border border-dashed border-[#d9d2c2] p-12 text-center text-[#78857a] bg-[#fbfaf6]">
             <UtensilsCrossed size={32} className="mx-auto text-[#b7b6aa] mb-3" />
             <h4 className="font-serif text-base font-bold text-[#26352a]">No Employee Selected</h4>
             <p className="text-xs text-[#78857a] max-w-md mx-auto mt-1">
-              Select an employee from the dropdown above to simulate the exact catalogue categories,
+              Select an employee from the dropdown above to preview the exact catalogue categories,
               dishes, and custom tier pricing visible on their portal.
             </p>
           </div>
@@ -263,7 +263,7 @@ export function MenuPreviewModal({ open, onClose }: MenuPreviewModalProps) {
         ) : isMenuError ? (
           <div className="rounded-2xl bg-[#fff5f5] p-6 text-center text-[#a34747] border border-[#ffdada]">
             <AlertCircle size={24} className="mx-auto text-[#a34747] mb-2" />
-            <p className="font-bold text-xs">Failed to load employee menu simulation</p>
+            <p className="font-bold text-xs">Failed to load employee menu preview</p>
             <p className="text-[11px] text-[#a34747]/80 mt-1">
               {getErrorMessage(menuError, "Could not resolve menu for selected employee.")}
             </p>

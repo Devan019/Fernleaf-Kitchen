@@ -3,8 +3,6 @@
 import { Header } from "@/components/Header";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { TableSkeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/features/auth/AuthContext";
 import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
 import { AdminOverrideModal } from "@/features/orders/AdminOverrideModal";
@@ -19,27 +17,18 @@ import {
 import { getErrorMessage } from "@/lib/utils/errors";
 import type { AdminOverrideDeliveryRequest, OrderStatus } from "@/types";
 import {
-  AlertTriangle,
   ArrowLeft,
   Building2,
   Calendar,
-  CheckCircle2,
-  Clock,
   CreditCard,
-  Flame,
-  Layers,
   MapPin,
-  Package,
   Receipt,
   Send,
   ShieldAlert,
-  ShoppingBag,
-  Snowflake,
   Trash2,
   Truck,
   User,
   UtensilsCrossed,
-  XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -60,7 +49,7 @@ const STATUS_BADGE_MAP: Record<
 export default function OrderDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const orderId = params?.orderId as string;
+  const orderId = String(params?.id || params?.orderId || "");
 
   const { currentUser } = useAuth();
   const isAdmin = currentUser?.role === "ADMIN";
@@ -108,7 +97,7 @@ export default function OrderDetailPage() {
 
   if (isLoading) {
     return (
-      <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
+      <ProtectedRoute requiredRole={["ADMIN", "KITCHEN"]}>
         <Header title="Order Details" />
         <main className="flex-1 p-8 space-y-6">
           <div className="h-8 w-48 bg-[#eae5d8] rounded-xl animate-pulse" />
@@ -120,7 +109,7 @@ export default function OrderDetailPage() {
 
   if (isError || !order) {
     return (
-      <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
+      <ProtectedRoute requiredRole={["ADMIN", "KITCHEN"]}>
         <Header title="Order Not Found" />
         <main className="flex-1 p-8">
           <div className="rounded-2xl bg-[#fff5f5] p-6 text-sm text-[#a34747] border border-[#ffdada] space-y-3">
@@ -141,16 +130,13 @@ export default function OrderDetailPage() {
 
   const badge = STATUS_BADGE_MAP[order.status] ?? { variant: "default", label: order.status };
   const isDraft = order.status === "DRAFT";
-  const isPlaced = order.status === "PLACED";
-  const isConfirmed = order.status === "CONFIRMED";
   const isDelivered = order.status === "DELIVERED";
   const isCancelled = order.status === "CANCELLED";
-  const isRejected = order.status === "REJECTED";
 
   const canCancel = isAdmin && !isDelivered && !isCancelled;
 
   return (
-    <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
+    <ProtectedRoute requiredRole={["ADMIN", "KITCHEN"]}>
       <Header title={order.orderNumber} />
       <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
         {/* Navigation Back */}
@@ -384,7 +370,7 @@ export default function OrderDetailPage() {
                         Driver Instructions:
                       </span>
                       <p className="text-xs text-[#26352a] mt-1 leading-relaxed">
-                        "{order.deliveryInstructions}"
+                        &quot;{order.deliveryInstructions}&quot;
                       </p>
                     </div>
                   )}

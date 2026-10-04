@@ -19,24 +19,16 @@ import { getErrorMessage } from "@/lib/utils/errors";
 import type {
   InvoiceDetail,
   InvoiceSummary,
-  UninvoicedOrder,
 } from "@/types";
 import {
   AlertCircle,
   ArrowLeft,
-  Building2,
-  Calendar,
   CheckCircle2,
-  Clock,
-  DollarSign,
   FileSpreadsheet,
-  Mail,
-  Phone,
   PlusCircle,
   Receipt,
   RefreshCw,
   Search,
-  User,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -46,7 +38,7 @@ const LIMIT = 15;
 
 export default function CompanyBillingDetailPage() {
   const params = useParams();
-  const companyId = String(params?.companyId || "");
+  const companyId = String(params?.id || params?.companyId || "");
 
   const [activeTab, setActiveTab] = useState<"UNINVOICED" | "INVOICES">("UNINVOICED");
 

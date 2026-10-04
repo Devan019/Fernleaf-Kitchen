@@ -382,7 +382,7 @@ export default function CompanyDetailPage() {
 
   if (loadingCompany) {
     return (
-      <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
+      <ProtectedRoute requiredRole={["ADMIN"]}>
         <Header title="Company Details" />
         <main className="flex-1 p-8 space-y-6">
           <div className="h-8 w-48 bg-[#eae5d8] rounded-xl animate-pulse" />
@@ -394,7 +394,7 @@ export default function CompanyDetailPage() {
 
   if (isError || !company) {
     return (
-      <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
+      <ProtectedRoute requiredRole={["ADMIN"]}>
         <Header title="Company Not Found" />
         <main className="flex-1 p-8">
           <div className="rounded-2xl bg-[#fff5f5] p-6 text-sm text-[#a34747] border border-[#ffdada] space-y-3">
@@ -414,7 +414,7 @@ export default function CompanyDetailPage() {
   }
 
   return (
-    <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
+    <ProtectedRoute requiredRole={["ADMIN"]}>
       <Header title={company.name} />
       <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
         {/* Back Link */}

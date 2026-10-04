@@ -168,7 +168,7 @@ export default function KitchenBoardPage() {
   );
 
   return (
-    <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
+    <ProtectedRoute requiredRole={["ADMIN", "KITCHEN"]}>
       <Header title="Kitchen Board" />
       <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
         {/* Page Header */}

@@ -201,7 +201,7 @@ export default function CataloguePage() {
   };
 
   return (
-    <ProtectedRoute requiredRole={["ADMIN", "KITCHEN", "DISPATCH"]}>
+    <ProtectedRoute requiredRole={["ADMIN", "KITCHEN"]}>
       <Header title="Catalogue" />
       <main className="flex-1 overflow-y-auto p-6 md:p-8">
         {/* Top Header */}
