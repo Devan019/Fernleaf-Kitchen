@@ -17,6 +17,9 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
+  //api prefix
+  app.setGlobalPrefix('api');
+
   // Cookie parser
   app.use(cookieParser());
 

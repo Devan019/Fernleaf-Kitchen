@@ -7,6 +7,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  //api prefix
+  app.setGlobalPrefix('api');
+
   // Cookie parser
   app.use(cookieParser());
 
