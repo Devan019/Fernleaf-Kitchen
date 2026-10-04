@@ -24,10 +24,14 @@ export const companyKeys = {
 
 // ── Query Hooks ──────────────────────────────────────────────────────────────
 
-export function useCompanies(params: ListCompaniesParams = {}) {
+export function useCompanies(
+  params: ListCompaniesParams = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: companyKeys.list(params),
     queryFn: () => companiesApi.list(params),
+    enabled: options?.enabled,
   });
 }
 
@@ -39,19 +43,25 @@ export function useCompany(id: string) {
   });
 }
 
-export function useCompanyAddresses(companyId: string) {
+export function useCompanyAddresses(
+  companyId: string,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: companyKeys.addresses(companyId),
     queryFn: () => companiesApi.listAddresses(companyId),
-    enabled: Boolean(companyId),
+    enabled: Boolean(companyId) && (options?.enabled ?? true),
   });
 }
 
-export function useCompanyHolidays(companyId: string) {
+export function useCompanyHolidays(
+  companyId: string,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: companyKeys.holidays(companyId),
     queryFn: () => companiesApi.listHolidays(companyId),
-    enabled: Boolean(companyId),
+    enabled: Boolean(companyId) && (options?.enabled ?? true),
   });
 }
 

@@ -88,11 +88,12 @@ export function CompanyFormModal({
 }: CompanyFormModalProps) {
   const isEdit = Boolean(company);
 
-  // Reference data
-  const { data: priceTiersData } = usePriceTiers({ limit: 100 });
-  const { data: usersData } = useUsers({ limit: 100 });
+  // Reference data (only query when modal is open)
+  const { data: priceTiersData } = usePriceTiers({ limit: 100 }, { enabled: open });
+  const { data: usersData } = useUsers({ limit: 100 }, { enabled: open });
   const { data: companyEmployeesData } = useEmployees(
     company?.id ? { companyId: company.id, limit: 100 } : { limit: 0 },
+    { enabled: open && Boolean(company?.id) }
   );
 
   const priceTiers = priceTiersData?.data ?? [];

@@ -16,10 +16,14 @@ export const orderKeys = {
 
 // ── Query Hooks ──────────────────────────────────────────────────────────────
 
-export function useOrders(params: ListOrdersParams = {}) {
+export function useOrders(
+  params: ListOrdersParams = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: orderKeys.list(params),
     queryFn: () => ordersApi.list(params),
+    enabled: options?.enabled,
   });
 }
 

@@ -25,36 +25,48 @@ export const billingKeys = {
   invoice: (invoiceId: string) => ["billing", "invoice", invoiceId] as const,
 };
 
-export function useCompanyBilling(params: ListCompanyBillingParams = {}) {
+export function useCompanyBilling(
+  params: ListCompanyBillingParams = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: billingKeys.companies(params),
     queryFn: () => billingApi.getCompanies(params),
+    enabled: options?.enabled,
   });
 }
 
-export function useCompanyBillingSummary(companyId: string) {
+export function useCompanyBillingSummary(
+  companyId: string,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: billingKeys.companySummary(companyId),
     queryFn: () => billingApi.getCompanySummary(companyId),
-    enabled: Boolean(companyId),
+    enabled: Boolean(companyId) && (options?.enabled ?? true),
   });
 }
 
 export function useUninvoicedOrders(
   companyId: string,
-  params: ListUninvoicedOrdersParams = {}
+  params: ListUninvoicedOrdersParams = {},
+  options?: { enabled?: boolean }
 ) {
   return useQuery({
     queryKey: billingKeys.uninvoicedOrders(companyId, params),
     queryFn: () => billingApi.getUninvoicedOrders(companyId, params),
-    enabled: Boolean(companyId),
+    enabled: Boolean(companyId) && (options?.enabled ?? true),
   });
 }
 
-export function useInvoices(params: ListInvoicesParams = {}) {
+export function useInvoices(
+  params: ListInvoicesParams = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: billingKeys.invoices(params),
     queryFn: () => billingApi.getInvoices(params),
+    enabled: options?.enabled,
   });
 }
 

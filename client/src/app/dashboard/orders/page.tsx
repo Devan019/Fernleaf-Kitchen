@@ -454,10 +454,12 @@ export default function OrdersPage() {
       </main>
 
       {/* Manual Cut-Off Processing Modal */}
-      <ProcessCutoffModal
-        open={cutoffModalOpen}
-        onClose={() => setCutoffModalOpen(false)}
-      />
+      {cutoffModalOpen && (
+        <ProcessCutoffModal
+          open={cutoffModalOpen}
+          onClose={() => setCutoffModalOpen(false)}
+        />
+      )}
     </ProtectedRoute>
   );
 }

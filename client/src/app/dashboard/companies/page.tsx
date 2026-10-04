@@ -501,13 +501,15 @@ export default function CompaniesPage() {
       </main>
 
       {/* Create Company Modal */}
-      <CompanyFormModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onSubmit={handleCreateCompany}
-        loading={createCompanyMutation.isPending}
-        serverError={formError}
-      />
+      {createModalOpen && (
+        <CompanyFormModal
+          open={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onSubmit={handleCreateCompany}
+          loading={createCompanyMutation.isPending}
+          serverError={formError}
+        />
+      )}
 
       {/* Deactivate Confirm Dialog */}
       <ConfirmDialog

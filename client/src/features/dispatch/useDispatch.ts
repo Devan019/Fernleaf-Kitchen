@@ -27,12 +27,12 @@ export function useDispatchDrivers() {
 
 export function useDispatchBoard(
   params: GetDispatchBoardParams,
-  options?: { refetchInterval?: number }
+  options?: { refetchInterval?: number; enabled?: boolean }
 ) {
   return useQuery({
     queryKey: dispatchKeys.board(params),
     queryFn: () => dispatchApi.getBoard(params),
-    enabled: Boolean(params.deliveryDate),
+    enabled: Boolean(params.deliveryDate) && (options?.enabled ?? true),
     refetchInterval: options?.refetchInterval ?? 25000,
   });
 }

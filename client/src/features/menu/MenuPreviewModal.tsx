@@ -34,14 +34,14 @@ export function MenuPreviewModal({ open, onClose }: MenuPreviewModalProps) {
   const [employeeSearch, setEmployeeSearch] = useState<string>("");
   const [isSelectorOpen, setIsSelectorOpen] = useState<boolean>(false);
 
-  // Fetch employees list (cached)
+  // Fetch employees list (only when modal is open)
   const {
     data: employeesData,
     isLoading: loadingEmployees,
     isError: isEmployeesError,
     error: employeesError,
     refetch: refetchEmployees,
-  } = useEmployees({ limit: 100, isActive: true });
+  } = useEmployees({ limit: 100, isActive: true }, { enabled: open });
 
   const employees: EmployeeSummary[] = useMemo(() => {
     if (!employeesData?.data) return [];

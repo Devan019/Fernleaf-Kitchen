@@ -405,14 +405,16 @@ export default function PricingPage() {
       </main>
 
       {/* Tier Create/Edit Modal */}
-      <PriceTierFormModal
-        open={tierFormOpen}
-        onClose={() => setTierFormOpen(false)}
-        tier={editingTier}
-        onSubmit={handleCreateOrUpdateTier}
-        loading={createTierMutation.isPending || updateTierMutation.isPending}
-        serverError={tierFormError}
-      />
+      {tierFormOpen && (
+        <PriceTierFormModal
+          open={tierFormOpen}
+          onClose={() => setTierFormOpen(false)}
+          tier={editingTier}
+          onSubmit={handleCreateOrUpdateTier}
+          loading={createTierMutation.isPending || updateTierMutation.isPending}
+          serverError={tierFormError}
+        />
+      )}
 
       {/* Delete Confirmation */}
       <ConfirmDialog
@@ -430,10 +432,12 @@ export default function PricingPage() {
       />
 
       {/* Resolution Playground */}
-      <PriceResolutionPlaygroundModal
-        open={playgroundOpen}
-        onClose={() => setPlaygroundOpen(false)}
-      />
+      {playgroundOpen && (
+        <PriceResolutionPlaygroundModal
+          open={playgroundOpen}
+          onClose={() => setPlaygroundOpen(false)}
+        />
+      )}
     </ProtectedRoute>
   );
 }

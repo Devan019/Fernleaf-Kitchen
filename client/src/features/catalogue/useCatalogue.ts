@@ -28,10 +28,14 @@ export const catalogueKeys = {
 
 // ── Dishes Hooks ─────────────────────────────────────────────────────────────
 
-export function useDishes(params: ListDishesParams = {}) {
+export function useDishes(
+  params: ListDishesParams = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: catalogueKeys.dishes(params),
     queryFn: () => catalogueApi.listDishes(params),
+    enabled: options?.enabled,
   });
 }
 
@@ -105,10 +109,14 @@ export function useDeleteDishImage() {
 
 // ── Options Hooks ────────────────────────────────────────────────────────────
 
-export function useOptions(params: ListOptionsParams = {}) {
+export function useOptions(
+  params: ListOptionsParams = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: catalogueKeys.options(params),
     queryFn: () => catalogueApi.listOptions(params),
+    enabled: options?.enabled,
   });
 }
 
@@ -322,10 +330,11 @@ export function useReorderGroupPortions(dishId?: string) {
 
 // ── Reference Data Hooks ─────────────────────────────────────────────────────
 
-export function useAllergens() {
+export function useAllergens(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: catalogueKeys.allergens(),
     queryFn: () => catalogueApi.listAllergens(),
+    enabled: options?.enabled,
   });
 }
 
@@ -350,10 +359,11 @@ export function useUpdateAllergen() {
   });
 }
 
-export function useDietaryTags() {
+export function useDietaryTags(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: catalogueKeys.dietaryTags(),
     queryFn: () => catalogueApi.listDietaryTags(),
+    enabled: options?.enabled,
   });
 }
 
@@ -378,9 +388,10 @@ export function useUpdateDietaryTag() {
   });
 }
 
-export function useKitchenStations() {
+export function useKitchenStations(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["catalogue", "kitchen-stations"] as const,
     queryFn: () => catalogueApi.listKitchenStations(),
+    enabled: options?.enabled,
   });
 }

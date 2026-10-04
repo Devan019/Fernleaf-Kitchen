@@ -50,7 +50,10 @@ export function DishDetailModal({
 }: DishDetailModalProps) {
   const { data: dish, isLoading, isError, error } = useDish(dishId ?? "");
   const { data: optionGroups = [] } = useOptionGroups(dishId ?? "");
-  const { data: allOptionsData } = useOptions({ limit: 100 });
+  const { data: allOptionsData } = useOptions(
+    { limit: 100 },
+    { enabled: Boolean(open && dishId) }
+  );
   const allAvailableOptions = allOptionsData?.data ?? [];
 
   const fileInputRef = useRef<HTMLInputElement>(null);

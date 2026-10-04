@@ -24,8 +24,12 @@ interface ReferenceDataModalProps {
 export function ReferenceDataModal({ open, onClose }: ReferenceDataModalProps) {
   const [activeTab, setActiveTab] = useState<"allergens" | "dietary">("allergens");
 
-  const { data: rawAllergens, isLoading: loadingAllergens } = useAllergens();
-  const { data: rawDietary, isLoading: loadingDietary } = useDietaryTags();
+  const { data: rawAllergens, isLoading: loadingAllergens } = useAllergens({
+    enabled: open,
+  });
+  const { data: rawDietary, isLoading: loadingDietary } = useDietaryTags({
+    enabled: open,
+  });
 
   const allergens: Allergen[] = Array.isArray(rawAllergens)
     ? rawAllergens

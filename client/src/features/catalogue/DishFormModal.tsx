@@ -49,9 +49,9 @@ export function DishFormModal({
   serverError,
 }: DishFormModalProps) {
   const isEdit = Boolean(dish);
-  const { data: rawAllergens } = useAllergens();
-  const { data: rawDietary } = useDietaryTags();
-  const { data: rawStations } = useKitchenStations();
+  const { data: rawAllergens } = useAllergens({ enabled: open });
+  const { data: rawDietary } = useDietaryTags({ enabled: open });
+  const { data: rawStations } = useKitchenStations({ enabled: open });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 

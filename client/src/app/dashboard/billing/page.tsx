@@ -69,7 +69,7 @@ export default function CompanyBillingPage() {
     hasOpenInvoices: companyFilter === "OPEN_INVOICES" ? true : undefined,
   });
 
-  // Query Invoices
+  // Query Invoices (lazy fetched when tab is active)
   const {
     data: invoicesData,
     isLoading: loadingInvoices,
@@ -77,12 +77,15 @@ export default function CompanyBillingPage() {
     error: invoicesError,
     refetch: refetchInvoices,
     isFetching: isFetchingInvoices,
-  } = useInvoices({
-    page: invoicePage,
-    limit: LIMIT,
-    search: invoiceSearch || undefined,
-    status: invoiceStatus !== "ALL" ? invoiceStatus : undefined,
-  });
+  } = useInvoices(
+    {
+      page: invoicePage,
+      limit: LIMIT,
+      search: invoiceSearch || undefined,
+      status: invoiceStatus !== "ALL" ? invoiceStatus : undefined,
+    },
+    { enabled: activeTab === "INVOICES" }
+  );
 
   // Compute Overall Overview Metrics from Loaded Data
   const companies = companiesData?.data ?? [];

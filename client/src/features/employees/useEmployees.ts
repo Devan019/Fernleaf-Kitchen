@@ -15,10 +15,14 @@ export const employeeKeys = {
 
 // ── Query Hooks ──────────────────────────────────────────────────────────────
 
-export function useEmployees(params: ListEmployeesParams = {}) {
+export function useEmployees(
+  params: ListEmployeesParams = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: employeeKeys.list(params),
     queryFn: () => employeesApi.list(params),
+    enabled: options?.enabled,
   });
 }
 

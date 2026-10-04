@@ -14,10 +14,14 @@ export const userKeys = {
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
-export function useUsers(params: ListUsersParams = {}) {
+export function useUsers(
+  params: ListUsersParams = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: userKeys.list(params),
     queryFn: () => usersApi.list(params),
+    enabled: options?.enabled,
   });
 }
 

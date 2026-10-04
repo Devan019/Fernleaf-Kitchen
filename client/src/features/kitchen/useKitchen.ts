@@ -10,12 +10,12 @@ export const kitchenKeys = {
 
 export function useKitchenBoard(
   params: GetKitchenBoardParams,
-  options?: { refetchInterval?: number }
+  options?: { refetchInterval?: number; enabled?: boolean }
 ) {
   return useQuery({
     queryKey: kitchenKeys.board(params),
     queryFn: () => kitchenApi.getBoard(params),
-    enabled: Boolean(params.deliveryDate),
+    enabled: Boolean(params.deliveryDate) && (options?.enabled ?? true),
     refetchInterval: options?.refetchInterval ?? 30000, // Background refresh every 30s
   });
 }

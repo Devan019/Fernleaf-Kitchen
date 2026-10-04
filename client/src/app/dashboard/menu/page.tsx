@@ -290,15 +290,17 @@ export default function MenuPage() {
       </main>
 
       {/* Category Create/Edit Modal */}
-      <CategoryFormModal
-        open={categoryFormOpen}
-        onClose={() => setCategoryFormOpen(false)}
-        category={editingCategory}
-        onSubmit={handleCreateOrUpdateCategory}
-        loading={createCategoryMutation.isPending || updateCategoryMutation.isPending}
-        serverError={categoryFormError}
-        defaultOrder={categories.length + 1}
-      />
+      {categoryFormOpen && (
+        <CategoryFormModal
+          open={categoryFormOpen}
+          onClose={() => setCategoryFormOpen(false)}
+          category={editingCategory}
+          onSubmit={handleCreateOrUpdateCategory}
+          loading={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+          serverError={categoryFormError}
+          defaultOrder={categories.length + 1}
+        />
+      )}
 
       {/* Add Dish to Category Modal */}
       {addDishCategory && (
@@ -321,7 +323,9 @@ export default function MenuPage() {
       )}
 
       {/* Live Preview Modal */}
-      <MenuPreviewModal open={previewOpen} onClose={() => setPreviewOpen(false)} />
+      {previewOpen && (
+        <MenuPreviewModal open={previewOpen} onClose={() => setPreviewOpen(false)} />
+      )}
     </ProtectedRoute>
   );
 }

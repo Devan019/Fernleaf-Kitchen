@@ -20,10 +20,14 @@ export const menuKeys = {
 
 // ── Category Hooks ───────────────────────────────────────────────────────────
 
-export function useCategories(params: ListCategoriesParams = {}) {
+export function useCategories(
+  params: ListCategoriesParams = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: menuKeys.categories(params),
     queryFn: () => menuApi.listCategories(params),
+    enabled: options?.enabled,
   });
 }
 

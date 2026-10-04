@@ -9,7 +9,9 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 30_000,
+            staleTime: 60_000, // 1 minute fresh window to prevent duplicate queries on re-navigation
+            gcTime: 5 * 60 * 1000, // 5 minutes cache retention
+            refetchOnWindowFocus: false, // Prevent aggressive refetching when switching browser tabs
             retry: (failureCount, error) => {
               // Do not retry on 401 / 403
               if (

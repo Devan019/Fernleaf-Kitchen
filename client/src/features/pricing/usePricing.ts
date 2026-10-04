@@ -38,10 +38,14 @@ export const pricingKeys = {
 
 // ── Price Tier Hooks ─────────────────────────────────────────────────────────
 
-export function usePriceTiers(params: ListPriceTiersParams = {}) {
+export function usePriceTiers(
+  params: ListPriceTiersParams = {},
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: pricingKeys.tiers(params),
     queryFn: () => pricingApi.listTiers(params),
+    enabled: options?.enabled,
   });
 }
 
@@ -100,11 +104,15 @@ export function useSetDefaultTier() {
 
 // ── Tier Dish Pricing Hooks ──────────────────────────────────────────────────
 
-export function useTierDishes(tierId: string, params: ListTierDishesParams = {}) {
+export function useTierDishes(
+  tierId: string,
+  params: ListTierDishesParams = {},
+  enabled = true
+) {
   return useQuery({
     queryKey: pricingKeys.tierDishes(tierId, params),
     queryFn: () => pricingApi.getTierDishes(tierId, params),
-    enabled: Boolean(tierId),
+    enabled: Boolean(tierId) && enabled,
   });
 }
 
@@ -153,11 +161,11 @@ export function useBulkUpdateDishPrices(tierId: string) {
 
 // ── Tier Option Pricing Hooks ────────────────────────────────────────────────
 
-export function useTierOptions(tierId: string) {
+export function useTierOptions(tierId: string, enabled = true) {
   return useQuery({
     queryKey: pricingKeys.tierOptions(tierId),
     queryFn: () => pricingApi.getTierOptions(tierId),
-    enabled: Boolean(tierId),
+    enabled: Boolean(tierId) && enabled,
   });
 }
 
@@ -261,9 +269,10 @@ export function useEmployeePricingContext(employeeId: string, enabled = true) {
 
 // ── Companies Reference Listing ──────────────────────────────────────────────
 
-export function useCompanies() {
+export function useCompanies(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: pricingKeys.companies(),
     queryFn: () => pricingApi.listCompanies({ limit: 100 }),
+    enabled: options?.enabled,
   });
 }

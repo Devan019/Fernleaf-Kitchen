@@ -266,7 +266,8 @@ export default function MyDeliveriesPage() {
                       <button
                         type="button"
                         onClick={() => setDeliveringDrop(drop)}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#294d33] py-2.5 text-xs font-black text-white hover:bg-[#1e3825] transition-all shadow-md cursor-pointer active:scale-95"
+                        disabled={!isOutForDelivery}
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#294d33] py-2.5 text-xs font-black text-white hover:bg-[#1e3825] transition-all shadow-md cursor-pointer active:scale-95 disabled:opacity-50"
                       >
                         <CheckCircle2 size={15} className="text-[#d8bd83]" />
                         <span>Mark Delivered</span>

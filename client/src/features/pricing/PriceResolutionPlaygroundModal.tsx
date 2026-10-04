@@ -33,10 +33,10 @@ export function PriceResolutionPlaygroundModal({
   open,
   onClose,
 }: PriceResolutionPlaygroundModalProps) {
-  // Query reference lists for intuitive dropdown selection
-  const { data: companies = [], isLoading: loadingCompanies } = useCompanies();
-  const { data: dishesData } = useDishes({ limit: 100, isActive: true });
-  const { data: optionsData } = useOptions({ limit: 100, isActive: true });
+  // Query reference lists only when modal is open
+  const { data: companies = [], isLoading: loadingCompanies } = useCompanies({ enabled: open });
+  const { data: dishesData } = useDishes({ limit: 100, isActive: true }, { enabled: open });
+  const { data: optionsData } = useOptions({ limit: 100, isActive: true }, { enabled: open });
 
   const dishes = dishesData?.data ?? [];
   const options = optionsData?.data ?? [];

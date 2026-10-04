@@ -31,8 +31,8 @@ export function OptionFormModal({
   serverError,
 }: OptionFormModalProps) {
   const isEdit = Boolean(option);
-  const { data: rawAllergens } = useAllergens();
-  const { data: rawDietary } = useDietaryTags();
+  const { data: rawAllergens } = useAllergens({ enabled: open });
+  const { data: rawDietary } = useDietaryTags({ enabled: open });
 
   const allergensList: Allergen[] = Array.isArray(rawAllergens)
     ? rawAllergens

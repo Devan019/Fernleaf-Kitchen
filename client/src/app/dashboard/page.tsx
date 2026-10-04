@@ -4,11 +4,9 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { useCompanyBilling } from "@/features/billing/useBilling";
-import { useCompanies } from "@/features/companies/useCompanies";
 import { useDispatchBoard, useDriverTodayDrops } from "@/features/dispatch/useDispatch";
 import { useKitchenBoard } from "@/features/kitchen/useKitchen";
 import { useOrders } from "@/features/orders/useOrders";
-import { useUsers } from "@/features/users/useUsers";
 import {
   AlertTriangle,
   BadgeDollarSign,
@@ -106,7 +104,7 @@ export default function DashboardPage() {
 function AdminDashboardView() {
   const todayStr = useMemo(() => getTodayStr(), []);
 
-  const { data: ordersData, isLoading: loadingOrders } = useOrders({ limit: 10 });
+  const { data: ordersData, isLoading: loadingOrders } = useOrders({ limit: 1 });
   const { data: kitchenData, isLoading: loadingKitchen } = useKitchenBoard({
     deliveryDate: todayStr,
   });
@@ -114,8 +112,6 @@ function AdminDashboardView() {
     deliveryDate: todayStr,
   });
   const { data: billingData, isLoading: loadingBilling } = useCompanyBilling({ limit: 10 });
-  const { data: companiesData } = useCompanies({ limit: 1 });
-  const { data: usersData } = useUsers({ limit: 1 });
 
   const allKitchenUnits = useMemo(() => {
     return (kitchenData?.stations ?? []).flatMap((s) => s.units);
@@ -155,9 +151,13 @@ function AdminDashboardView() {
               <ShoppingBag size={16} />
             </div>
           </div>
-          <p className="font-serif text-3xl font-black text-[#26352a]">
-            {loadingOrders ? "—" : ordersData?.meta.total ?? 0}
-          </p>
+          {loadingOrders ? (
+            <div className="h-9 w-20 bg-[#e8e4d8] animate-pulse rounded-lg my-1" />
+          ) : (
+            <p className="font-serif text-3xl font-black text-[#26352a]">
+              {ordersData?.meta.total ?? 0}
+            </p>
+          )}
           <p className="text-xs text-[#5c685e] mt-1.5 flex items-center justify-between">
             <span>Recent orders logged</span>
             <span className="text-[#294d33] font-semibold group-hover:translate-x-0.5 transition-transform">
@@ -177,12 +177,16 @@ function AdminDashboardView() {
               <ChefHat size={16} />
             </div>
           </div>
-          <p className="font-serif text-3xl font-black text-[#26352a]">
-            {loadingKitchen ? "—" : allKitchenUnits.length}
-          </p>
+          {loadingKitchen ? (
+            <div className="h-9 w-20 bg-[#e8e4d8] animate-pulse rounded-lg my-1" />
+          ) : (
+            <p className="font-serif text-3xl font-black text-[#26352a]">
+              {allKitchenUnits.length}
+            </p>
+          )}
           <p className="text-xs text-[#5c685e] mt-1.5 flex items-center justify-between">
             <span>
-              {kitchenDone}/{allKitchenUnits.length} units done
+              {loadingKitchen ? "Loading..." : `${kitchenDone}/${allKitchenUnits.length} units done`}
             </span>
             {kitchenUrgent > 0 ? (
               <span className="text-[#dc2626] font-bold">⚠️ {kitchenUrgent} urgent</span>
@@ -203,12 +207,16 @@ function AdminDashboardView() {
               <Truck size={16} />
             </div>
           </div>
-          <p className="font-serif text-3xl font-black text-[#26352a]">
-            {loadingDispatch ? "—" : drops.length}
-          </p>
+          {loadingDispatch ? (
+            <div className="h-9 w-20 bg-[#e8e4d8] animate-pulse rounded-lg my-1" />
+          ) : (
+            <p className="font-serif text-3xl font-black text-[#26352a]">
+              {drops.length}
+            </p>
+          )}
           <p className="text-xs text-[#5c685e] mt-1.5 flex items-center justify-between">
             <span>
-              {outForDelivery} in transit · {deliveredDrops} delivered
+              {loadingDispatch ? "Loading..." : `${outForDelivery} in transit · ${deliveredDrops} delivered`}
             </span>
             <span className="text-[#1d64b2] font-semibold group-hover:translate-x-0.5 transition-transform">
               Board →
@@ -227,11 +235,15 @@ function AdminDashboardView() {
               <ReceiptText size={16} />
             </div>
           </div>
-          <p className="font-serif text-3xl font-black text-[#26352a]">
-            {loadingBilling ? "—" : totalUninvoicedOrders}
-          </p>
+          {loadingBilling ? (
+            <div className="h-9 w-20 bg-[#e8e4d8] animate-pulse rounded-lg my-1" />
+          ) : (
+            <p className="font-serif text-3xl font-black text-[#26352a]">
+              {totalUninvoicedOrders}
+            </p>
+          )}
           <p className="text-xs text-[#5c685e] mt-1.5 flex items-center justify-between">
-            <span>{totalOpenInvoices} open invoices</span>
+            <span>{loadingBilling ? "Loading..." : `${totalOpenInvoices} open invoices`}</span>
             <span className="text-[#8c6b29] font-semibold group-hover:translate-x-0.5 transition-transform">
               Manage →
             </span>
@@ -299,9 +311,7 @@ function AdminDashboardView() {
             </div>
             <div className="min-w-0">
               <p className="font-bold text-xs text-[#26352a] group-hover:text-[#294d33]">Companies</p>
-              <p className="text-[11px] text-[#78857a] truncate">
-                {companiesData?.meta.total ? `${companiesData.meta.total} clients` : "Corporate accounts"}
-              </p>
+              <p className="text-[11px] text-[#78857a] truncate">Corporate accounts</p>
             </div>
           </Link>
 
@@ -314,9 +324,7 @@ function AdminDashboardView() {
             </div>
             <div className="min-w-0">
               <p className="font-bold text-xs text-[#26352a] group-hover:text-[#6c487a]">Staff Users</p>
-              <p className="text-[11px] text-[#78857a] truncate">
-                {usersData?.meta.total ? `${usersData.meta.total} staff accounts` : "Team & roles"}
-              </p>
+              <p className="text-[11px] text-[#78857a] truncate">Team &amp; roles</p>
             </div>
           </Link>
 

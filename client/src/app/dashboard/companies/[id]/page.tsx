@@ -143,13 +143,16 @@ export default function CompanyDetailPage() {
   const {
     data: employeesData,
     isLoading: loadingEmployees,
-  } = useEmployees({
-    companyId,
-    page: employeePage,
-    limit: EMPLOYEE_LIMIT,
-    search: employeeSearch.trim() || undefined,
-    isActive: employeeStatusFilter === "ALL" ? undefined : employeeStatusFilter === "ACTIVE",
-  });
+  } = useEmployees(
+    {
+      companyId,
+      page: employeePage,
+      limit: EMPLOYEE_LIMIT,
+      search: employeeSearch.trim() || undefined,
+      isActive: employeeStatusFilter === "ALL" ? undefined : employeeStatusFilter === "ACTIVE",
+    },
+    { enabled: Boolean(companyId) && activeTab === "employees" }
+  );
 
   // Company Mutations
   const updateCompanyMutation = useUpdateCompany(companyId);

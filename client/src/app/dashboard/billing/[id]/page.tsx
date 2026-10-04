@@ -71,21 +71,28 @@ export default function CompanyBillingDetailPage() {
     error: ordersError,
     refetch: refetchOrders,
     isFetching: isFetchingOrders,
-  } = useUninvoicedOrders(companyId, {
-    page: ordersPage,
-    limit: LIMIT,
-    search: ordersSearch || undefined,
-  });
+  } = useUninvoicedOrders(
+    companyId,
+    {
+      page: ordersPage,
+      limit: LIMIT,
+      search: ordersSearch || undefined,
+    },
+    { enabled: Boolean(companyId) && activeTab === "UNINVOICED" }
+  );
 
   const {
     data: invoicesData,
     isLoading: loadingInvoices,
     refetch: refetchInvoices,
-  } = useInvoices({
-    companyId,
-    page: invoicesPage,
-    limit: LIMIT,
-  });
+  } = useInvoices(
+    {
+      companyId,
+      page: invoicesPage,
+      limit: LIMIT,
+    },
+    { enabled: Boolean(companyId) && activeTab === "INVOICES" }
+  );
 
   const uninvoicedOrders = uninvoicedData?.orders ?? [];
   const invoices = invoicesData?.data ?? [];

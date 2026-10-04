@@ -83,19 +83,23 @@ export default function TierDetailPage() {
     isLoading: loadingDishes,
     isError: isDishesError,
     error: dishesError,
-  } = useTierDishes(tierId, {
-    page,
-    limit: LIMIT,
-    search: search.trim() || undefined,
-    missingOnly: missingOnly || undefined,
-  });
+  } = useTierDishes(
+    tierId,
+    {
+      page,
+      limit: LIMIT,
+      search: search.trim() || undefined,
+      missingOnly: missingOnly || undefined,
+    },
+    activeTab === "dishes"
+  );
 
   const {
     data: rawOptions,
     isLoading: loadingOptions,
     isError: isOptionsError,
     error: optionsError,
-  } = useTierOptions(tierId);
+  } = useTierOptions(tierId, activeTab === "options");
 
   const optionsList: TierOptionPricing[] = Array.isArray(rawOptions)
     ? rawOptions
@@ -589,22 +593,26 @@ export default function TierDetailPage() {
       )}
 
       {/* Bulk Overrides Modal */}
-      <BulkPriceOverrideModal
-        open={bulkOpen}
-        onClose={() => setBulkOpen(false)}
-        dishes={dishes}
-        onSaveBulk={handleSaveBulk}
-        loading={bulkUpdateMutation.isPending}
-      />
+      {bulkOpen && (
+        <BulkPriceOverrideModal
+          open={bulkOpen}
+          onClose={() => setBulkOpen(false)}
+          dishes={dishes}
+          onSaveBulk={handleSaveBulk}
+          loading={bulkUpdateMutation.isPending}
+        />
+      )}
 
       {/* Edit Tier Modal */}
-      <PriceTierFormModal
-        open={editTierOpen}
-        onClose={() => setEditTierOpen(false)}
-        tier={tier}
-        onSubmit={handleUpdateTier}
-        loading={updateTierMutation.isPending}
-      />
+      {editTierOpen && (
+        <PriceTierFormModal
+          open={editTierOpen}
+          onClose={() => setEditTierOpen(false)}
+          tier={tier}
+          onSubmit={handleUpdateTier}
+          loading={updateTierMutation.isPending}
+        />
+      )}
     </ProtectedRoute>
   );
 }

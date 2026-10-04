@@ -81,20 +81,20 @@ export default function CataloguePage() {
     isActive: statusFilter === "ALL" ? undefined : statusFilter === "ACTIVE",
   };
 
-  // Queries
+  // Queries (lazy fetched per tab)
   const {
     data: dishesData,
     isLoading: loadingDishes,
     isError: isDishesError,
     error: dishesError,
-  } = useDishes(dishParams);
+  } = useDishes(dishParams, { enabled: activeTab === "dishes" });
 
   const {
     data: optionsData,
     isLoading: loadingOptions,
     isError: isOptionsError,
     error: optionsError,
-  } = useOptions(optionParams);
+  } = useOptions(optionParams, { enabled: activeTab === "options" });
 
   // Mutations
   const createDishMutation = useCreateDish();
@@ -692,43 +692,51 @@ export default function CataloguePage() {
       </main>
 
       {/* Dish Create/Edit Modal */}
-      <DishFormModal
-        open={dishFormOpen}
-        onClose={() => setDishFormOpen(false)}
-        dish={editingDish}
-        onSubmit={handleCreateOrUpdateDish}
-        loading={createDishMutation.isPending || updateDishMutation.isPending}
-        serverError={dishFormError}
-      />
+      {dishFormOpen && (
+        <DishFormModal
+          open={dishFormOpen}
+          onClose={() => setDishFormOpen(false)}
+          dish={editingDish}
+          onSubmit={handleCreateOrUpdateDish}
+          loading={createDishMutation.isPending || updateDishMutation.isPending}
+          serverError={dishFormError}
+        />
+      )}
 
       {/* Dish Detail / Option Groups Modal */}
-      <DishDetailModal
-        dishId={dishDetailId}
-        open={dishDetailId !== null}
-        onClose={() => setDishDetailId(null)}
-        onEdit={() => {
-          const found = dishesData?.data.find((d) => d.id === dishDetailId);
-          if (found) {
-            setDishDetailId(null);
-            setEditingDish(found);
-            setDishFormError(null);
-            setDishFormOpen(true);
-          }
-        }}
-      />
+      {dishDetailId !== null && (
+        <DishDetailModal
+          dishId={dishDetailId}
+          open={dishDetailId !== null}
+          onClose={() => setDishDetailId(null)}
+          onEdit={() => {
+            const found = dishesData?.data.find((d) => d.id === dishDetailId);
+            if (found) {
+              setDishDetailId(null);
+              setEditingDish(found);
+              setDishFormError(null);
+              setDishFormOpen(true);
+            }
+          }}
+        />
+      )}
 
       {/* Option Create/Edit Modal */}
-      <OptionFormModal
-        open={optionFormOpen}
-        onClose={() => setOptionFormOpen(false)}
-        option={editingOption}
-        onSubmit={handleCreateOrUpdateOption}
-        loading={createOptionMutation.isPending || updateOptionMutation.isPending}
-        serverError={optionFormError}
-      />
+      {optionFormOpen && (
+        <OptionFormModal
+          open={optionFormOpen}
+          onClose={() => setOptionFormOpen(false)}
+          option={editingOption}
+          onSubmit={handleCreateOrUpdateOption}
+          loading={createOptionMutation.isPending || updateOptionMutation.isPending}
+          serverError={optionFormError}
+        />
+      )}
 
       {/* Reference Data Modal */}
-      <ReferenceDataModal open={refDataOpen} onClose={() => setRefDataOpen(false)} />
+      {refDataOpen && (
+        <ReferenceDataModal open={refDataOpen} onClose={() => setRefDataOpen(false)} />
+      )}
     </ProtectedRoute>
   );
 }
