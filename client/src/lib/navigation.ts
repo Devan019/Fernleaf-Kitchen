@@ -40,8 +40,8 @@ export const NAV_ITEMS: NavItem[] = [
     allowedRoles: ["ADMIN", "KITCHEN", "DISPATCH"],
   },
   {
-    label: "Delivery Operations",
-    href: "/dashboard/deliveries",
+    label: "Dispatch Board",
+    href: "/dashboard/dispatch",
     icon: Truck,
     allowedRoles: ["ADMIN", "DISPATCH"],
   },

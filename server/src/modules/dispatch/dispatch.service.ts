@@ -4,6 +4,7 @@ import {
   DeliveryDropStatus,
   KitchenUnitStatus,
   OrderStatus,
+  UserRole,
 } from '../../generated/prisma/enums.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { DropService } from './drop.service.js';
@@ -264,5 +265,25 @@ export class DispatchService {
         createdAt: h.createdAt,
       })),
     };
+  }
+
+  /**
+   * Retrieves all active staff users with DRIVER role for dispatch assignment.
+   */
+  async getActiveDrivers(): Promise<{ id: string; name: string; email: string }[]> {
+    return this.prisma.user.findMany({
+      where: {
+        role: UserRole.DRIVER,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
   }
 }

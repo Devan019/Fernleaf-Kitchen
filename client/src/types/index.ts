@@ -71,6 +71,7 @@ export interface ApiError {
 
 export * from "./catalogue";
 export * from "./companies";
+export * from "./dispatch";
 export * from "./employees";
 export * from "./kitchen";
 export * from "./menu";

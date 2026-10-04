@@ -61,6 +61,16 @@ export class DispatchController {
     return this.dispatchService.getBoard(query);
   }
 
+  @Get('drivers')
+  @RequirePermissions(Permission.DISPATCH_READ)
+  @ApiOperation({ summary: 'Get active drivers for assignment dropdown' })
+  @ApiResponse({ status: 200, description: 'Active drivers list retrieved successfully.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  getActiveDrivers(): Promise<{ id: string; name: string; email: string }[]> {
+    return this.dispatchService.getActiveDrivers();
+  }
+
   @Get('drops/:dropId')
   @RequirePermissions(Permission.DISPATCH_READ)
   @ApiOperation({ summary: 'View detailed operational information for a delivery drop' })
