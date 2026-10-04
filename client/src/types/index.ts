@@ -69,6 +69,7 @@ export interface ApiError {
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
+export * from "./billing";
 export * from "./catalogue";
 export * from "./companies";
 export * from "./dispatch";

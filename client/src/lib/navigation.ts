@@ -7,6 +7,7 @@ import {
   Flame,
   LayoutDashboard,
   Navigation,
+  ReceiptText,
   ShoppingBag,
   Truck,
   Users,
@@ -74,6 +75,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/dashboard/companies",
     icon: Building2,
     allowedRoles: ["ADMIN", "KITCHEN", "DISPATCH"],
+  },
+  {
+    label: "Company Billing",
+    href: "/dashboard/billing",
+    icon: ReceiptText,
+    allowedRoles: ["ADMIN"],
   },
   {
     label: "Users",
