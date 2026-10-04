@@ -9,7 +9,8 @@ import {
 } from "react";
 import { authApi } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
-import type { AuthUser, LoginRequest } from "@/types";
+import { hasAllPermissions, hasAnyPermission, hasPermission } from "@/lib/permissions";
+import type { AuthUser, LoginRequest, Permission } from "@/types";
 
 // ─── Context Shape ────────────────────────────────────────────────────────────
 
@@ -19,6 +20,9 @@ interface AuthContextValue {
   loading: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
+  can: (permission: Permission) => boolean;
+  canAll: (permissions: Permission[]) => boolean;
+  canAny: (permissions: Permission[]) => boolean;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -61,6 +65,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCurrentUser(null);
   }, []);
 
+  const can = useCallback(
+    (permission: Permission) => hasPermission(currentUser?.role, permission),
+    [currentUser?.role],
+  );
+
+  const canAll = useCallback(
+    (permissions: Permission[]) => hasAllPermissions(currentUser?.role, permissions),
+    [currentUser?.role],
+  );
+
+  const canAny = useCallback(
+    (permissions: Permission[]) => hasAnyPermission(currentUser?.role, permissions),
+    [currentUser?.role],
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -69,6 +88,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         login,
         logout,
+        can,
+        canAll,
+        canAny,
       }}
     >
       {children}

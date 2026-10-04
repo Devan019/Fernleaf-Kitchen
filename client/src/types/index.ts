@@ -35,8 +35,8 @@ export interface PaginationMeta {
   limit: number;
   total: number;
   totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
 }
 
 export interface PaginatedUsers {
@@ -73,5 +73,8 @@ export * from "./catalogue";
 export * from "./companies";
 export * from "./employees";
 export * from "./menu";
+export * from "./orders";
+export * from "./permissions";
 export * from "./pricing";
+
 

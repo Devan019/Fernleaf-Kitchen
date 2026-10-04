@@ -4,8 +4,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 interface PaginationProps {
   page: number;
   totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
   onPageChange: (page: number) => void;
   total: number;
   limit: number;
@@ -23,6 +23,9 @@ export function Pagination({
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
 
+  const canGoPrevious = hasPreviousPage !== undefined ? hasPreviousPage : page > 1;
+  const canGoNext = hasNextPage !== undefined ? hasNextPage : page < totalPages;
+
   return (
     <div className="flex items-center justify-between border-t border-[#eae5d8] bg-[#fbfaf6]/90 px-6 py-4">
       <p className="text-xs text-[#78857a]">
@@ -31,30 +34,32 @@ export function Pagination({
       </p>
       <div className="flex items-center gap-1.5">
         <button
+          type="button"
           onClick={() => onPageChange(page - 1)}
-          disabled={!hasPreviousPage}
+          disabled={!canGoPrevious}
           aria-label="Previous page"
           className={clsx(
             "flex h-8 w-8 items-center justify-center rounded-xl border text-sm transition-all",
-            hasPreviousPage
-              ? "border-[#d9d2c2] bg-white text-[#26352a] hover:bg-[#ede8db] shadow-xs"
-              : "border-[#e5dfd2] text-[#b0b8ae] cursor-not-allowed bg-transparent",
+            canGoPrevious
+              ? "border-[#d9d2c2] bg-white text-[#26352a] hover:bg-[#ede8db] shadow-xs cursor-pointer active:scale-95"
+              : "border-[#e5dfd2] text-[#c0c7be] cursor-not-allowed bg-[#f3efe6]/60 opacity-40 pointer-events-none",
           )}
         >
           <ChevronLeft size={15} />
         </button>
-        <span className="text-xs font-medium text-[#4c594f] px-2.5">
-          Page {page} of {totalPages}
+        <span className="text-xs font-semibold text-[#4c594f] px-2.5 select-none">
+          Page {page} of {Math.max(1, totalPages)}
         </span>
         <button
+          type="button"
           onClick={() => onPageChange(page + 1)}
-          disabled={!hasNextPage}
+          disabled={!canGoNext}
           aria-label="Next page"
           className={clsx(
             "flex h-8 w-8 items-center justify-center rounded-xl border text-sm transition-all",
-            hasNextPage
-              ? "border-[#d9d2c2] bg-white text-[#26352a] hover:bg-[#ede8db] shadow-xs"
-              : "border-[#e5dfd2] text-[#b0b8ae] cursor-not-allowed bg-transparent",
+            canGoNext
+              ? "border-[#d9d2c2] bg-white text-[#26352a] hover:bg-[#ede8db] shadow-xs cursor-pointer active:scale-95"
+              : "border-[#e5dfd2] text-[#c0c7be] cursor-not-allowed bg-[#f3efe6]/60 opacity-40 pointer-events-none",
           )}
         >
           <ChevronRight size={15} />

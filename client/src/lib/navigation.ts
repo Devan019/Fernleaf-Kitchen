@@ -4,6 +4,7 @@ import {
   BookOpenCheck,
   Building2,
   LayoutDashboard,
+  ShoppingBag,
   UtensilsCrossed,
   Users,
 } from "lucide-react";
@@ -21,6 +22,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/dashboard",
     icon: LayoutDashboard,
     allowedRoles: ["ADMIN", "KITCHEN", "DISPATCH", "DRIVER"],
+  },
+  {
+    label: "Orders",
+    href: "/dashboard/orders",
+    icon: ShoppingBag,
+    allowedRoles: ["ADMIN", "KITCHEN", "DISPATCH"],
   },
   {
     label: "Catalogue",
