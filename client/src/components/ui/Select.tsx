@@ -18,9 +18,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, hint, options, placeholder, className, id, ...rest }, ref) => {
     const selectId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={selectId} className="text-sm font-medium text-slate-700">
+          <label htmlFor={selectId} className="text-xs font-semibold tracking-wide text-[#4c594f]">
             {label}
           </label>
         )}
@@ -28,12 +28,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={clsx(
-            "h-9 w-full rounded-md border bg-white px-3 text-sm text-slate-800 transition-colors",
-            "focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500",
+            "h-10 w-full rounded-xl border bg-white px-3.5 text-sm text-[#26352a] transition-all",
+            "focus:outline-none focus:ring-4 focus:ring-[#315d3c]/10 focus:border-[#315d3c]",
             error
-              ? "border-red-400 ring-1 ring-red-400"
-              : "border-slate-300 hover:border-slate-400",
-            "disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400",
+              ? "border-[#bd6a6a] ring-2 ring-[#bd6a6a]/15 focus:ring-[#bd6a6a]/15"
+              : "border-[#d9d2c2] hover:border-[#b7b6aa]",
+            "disabled:cursor-not-allowed disabled:bg-[#f5f2e9] disabled:text-[#888f86]",
             className,
           )}
           aria-describedby={error ? `${selectId}-error` : undefined}
@@ -52,12 +52,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ))}
         </select>
         {error && (
-          <p id={`${selectId}-error`} className="text-xs text-red-600" role="alert">
+          <p id={`${selectId}-error`} className="text-xs text-[#b24e4e]" role="alert">
             {error}
           </p>
         )}
         {hint && !error && (
-          <p className="text-xs text-slate-500">{hint}</p>
+          <p className="text-xs text-[#78857a]">{hint}</p>
         )}
       </div>
     );

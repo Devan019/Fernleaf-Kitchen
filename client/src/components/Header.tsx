@@ -21,18 +21,23 @@ export function Header({ title }: HeaderProps) {
   };
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 bg-white border-b border-slate-200 shrink-0">
+    <header className="h-16 flex items-center justify-between px-6 bg-[#fbfaf6]/80 backdrop-blur-md border-b border-[#d9d2c2] shrink-0 z-20">
       {/* Page title */}
-      <h1 className="text-lg font-semibold text-slate-800">{title}</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="font-serif text-xl font-semibold text-[#26352a] tracking-tight">
+          {title}
+        </h1>
+      </div>
 
       {/* Right cluster */}
       <div className="flex items-center gap-3">
         {/* Notifications (placeholder) */}
         <button
           aria-label="Notifications"
-          className="relative flex h-9 w-9 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 transition-colors"
+          className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#d9d2c2]/60 bg-white/70 text-[#4c594f] shadow-sm hover:bg-white hover:text-[#26352a] transition-all"
         >
-          <Bell size={18} />
+          <Bell size={17} />
+          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#c8a96b]" />
         </button>
 
         {/* User menu */}
@@ -42,20 +47,20 @@ export function Header({ title }: HeaderProps) {
             aria-haspopup="true"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((o) => !o)}
-            className="flex items-center gap-2.5 rounded-md px-3 py-1.5 hover:bg-slate-100 transition-colors"
+            className="flex items-center gap-2.5 rounded-xl border border-[#d9d2c2]/60 bg-white/70 px-3 py-1.5 shadow-sm hover:bg-white hover:border-[#d9d2c2] transition-all"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shrink-0">
-              <User size={16} />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#294d33] text-[#d8bd83] font-serif text-xs font-semibold shrink-0">
+              {currentUser?.name?.charAt(0) ?? <User size={14} />}
             </div>
             <div className="hidden sm:block text-left">
-              <p className="text-sm font-medium text-slate-800 leading-tight">
+              <p className="text-xs font-semibold text-[#26352a] leading-tight">
                 {currentUser?.name}
               </p>
-              <p className="text-xs text-slate-500 leading-tight">
+              <p className="text-[10px] text-[#78857a] uppercase tracking-wider leading-tight">
                 {currentUser?.role ? (roleLabel[currentUser.role] ?? currentUser.role) : ""}
               </p>
             </div>
-            <ChevronDown size={14} className="text-slate-400" />
+            <ChevronDown size={14} className="text-[#78857a]" />
           </button>
 
           {menuOpen && (
@@ -70,17 +75,25 @@ export function Header({ title }: HeaderProps) {
               <div
                 role="menu"
                 aria-labelledby="user-menu-trigger"
-                className="absolute right-0 top-full mt-1.5 z-20 w-44 rounded-lg border border-slate-200 bg-white shadow-lg py-1"
+                className="absolute right-0 top-full mt-2 z-20 w-48 rounded-2xl border border-[#d9d2c2] bg-[#fbfaf6]/95 backdrop-blur-xl shadow-xl py-1.5 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
               >
+                <div className="px-4 py-2 border-b border-[#eae5d8] sm:hidden">
+                  <p className="text-xs font-semibold text-[#26352a]">
+                    {currentUser?.name}
+                  </p>
+                  <p className="text-[10px] text-[#78857a] uppercase">
+                    {currentUser?.role}
+                  </p>
+                </div>
                 <button
                   role="menuitem"
                   onClick={() => {
                     setMenuOpen(false);
                     logout();
                   }}
-                  className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[#a34747] hover:bg-[#fff0f0] transition-colors"
                 >
-                  <LogOut size={15} />
+                  <LogOut size={14} />
                   Log out
                 </button>
               </div>

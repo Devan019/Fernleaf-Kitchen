@@ -24,37 +24,37 @@ export function Pagination({
   const to = Math.min(page * limit, total);
 
   return (
-    <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3">
-      <p className="text-xs text-slate-500">
-        Showing <span className="font-medium text-slate-700">{from}–{to}</span> of{" "}
-        <span className="font-medium text-slate-700">{total}</span> users
+    <div className="flex items-center justify-between border-t border-[#eae5d8] bg-[#fbfaf6]/90 px-6 py-4">
+      <p className="text-xs text-[#78857a]">
+        Showing <span className="font-semibold text-[#26352a]">{from}–{to}</span> of{" "}
+        <span className="font-semibold text-[#26352a]">{total}</span> records
       </p>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={!hasPreviousPage}
           aria-label="Previous page"
           className={clsx(
-            "flex h-8 w-8 items-center justify-center rounded-md border text-sm transition-colors",
+            "flex h-8 w-8 items-center justify-center rounded-xl border text-sm transition-all",
             hasPreviousPage
-              ? "border-slate-300 text-slate-600 hover:bg-slate-50"
-              : "border-slate-100 text-slate-300 cursor-not-allowed",
+              ? "border-[#d9d2c2] bg-white text-[#26352a] hover:bg-[#ede8db] shadow-xs"
+              : "border-[#e5dfd2] text-[#b0b8ae] cursor-not-allowed bg-transparent",
           )}
         >
           <ChevronLeft size={15} />
         </button>
-        <span className="text-xs text-slate-600 px-2">
-          {page} / {totalPages}
+        <span className="text-xs font-medium text-[#4c594f] px-2.5">
+          Page {page} of {totalPages}
         </span>
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={!hasNextPage}
           aria-label="Next page"
           className={clsx(
-            "flex h-8 w-8 items-center justify-center rounded-md border text-sm transition-colors",
+            "flex h-8 w-8 items-center justify-center rounded-xl border text-sm transition-all",
             hasNextPage
-              ? "border-slate-300 text-slate-600 hover:bg-slate-50"
-              : "border-slate-100 text-slate-300 cursor-not-allowed",
+              ? "border-[#d9d2c2] bg-white text-[#26352a] hover:bg-[#ede8db] shadow-xs"
+              : "border-[#e5dfd2] text-[#b0b8ae] cursor-not-allowed bg-transparent",
           )}
         >
           <ChevronRight size={15} />

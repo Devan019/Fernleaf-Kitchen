@@ -24,7 +24,6 @@ import {
 import { getErrorMessage } from "@/lib/utils/errors";
 import type { User, UserRole } from "@/types";
 import {
-  MoreHorizontal,
   Pencil,
   Plus,
   UserMinus,
@@ -113,28 +112,28 @@ export default function UsersPage() {
   return (
     <ProtectedRoute requiredRole="ADMIN">
       <Header title="Users" />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-6 md:p-8">
         <PageHeader
           title="Staff Users"
-          description="Manage staff accounts across all roles."
+          description="Manage kitchen personnel, drivers, dispatch, and system administrators."
           actions={
             <Button
               id="create-user-btn"
-              icon={<Plus size={15} />}
+              icon={<Plus size={16} />}
               onClick={() => {
                 setCreateError(null);
                 setCreateOpen(true);
               }}
             >
-              Create User
+              Create Staff User
             </Button>
           }
         />
 
         {/* Table card */}
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-3xl border border-[#d9d2c2] bg-[#fbfaf6]/90 backdrop-blur-md shadow-[0_10px_35px_rgba(38,53,42,0.04)] overflow-hidden">
           {isError && (
-            <div className="px-6 py-4 text-sm text-red-600">
+            <div className="px-6 py-4 text-sm text-[#a34747] bg-[#fff5f5] border-b border-[#ffdada]">
               {getErrorMessage(error, "Failed to load users. Please try again.")}
             </div>
           )}
@@ -142,25 +141,25 @@ export default function UsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm" aria-label="Staff users">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                <tr className="border-b border-[#eae5d8] bg-[#f5f1e6]/70">
+                  <th className="px-6 py-3.5 text-left text-[11px] font-bold text-[#5c685e] uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                  <th className="px-6 py-3.5 text-left text-[11px] font-bold text-[#5c685e] uppercase tracking-wider">
                     Email
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                  <th className="px-6 py-3.5 text-left text-[11px] font-bold text-[#5c685e] uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                  <th className="px-6 py-3.5 text-left text-[11px] font-bold text-[#5c685e] uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                  <th className="px-6 py-3.5 text-right text-[11px] font-bold text-[#5c685e] uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#eee9dc]">
                 {isLoading ? (
                   <TableSkeleton rows={5} cols={5} />
                 ) : !data || data.data.length === 0 ? (
@@ -185,35 +184,42 @@ export default function UsersPage() {
                   data.data.map((user) => (
                     <tr
                       key={user.id}
-                      className="hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="hover:bg-[#f6f2e8] transition-colors cursor-pointer group"
                       onClick={() => router.push(`/dashboard/users/${user.id}`)}
                     >
-                      <td className="px-4 py-3 font-medium text-slate-800">
-                        {user.name}
+                      <td className="px-6 py-4 font-medium text-[#26352a]">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#294d33]/10 text-[#294d33] font-serif text-xs font-bold border border-[#294d33]/15">
+                            {user.name.charAt(0)}
+                          </div>
+                          <span>{user.name}</span>
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-slate-600">{user.email}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-6 py-4 text-[#5c685e] font-mono text-xs">
+                        {user.email}
+                      </td>
+                      <td className="px-6 py-4">
                         <Badge variant={roleBadgeVariant(user.role)}>
                           {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-6 py-4">
                         <Badge variant={user.isActive ? "active" : "inactive"}>
                           {user.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </td>
                       <td
-                        className="px-4 py-3 text-right"
+                        className="px-6 py-4 text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="flex justify-end gap-1">
+                        <div className="flex justify-end gap-1.5">
                           <button
                             aria-label={`Edit ${user.name}`}
                             onClick={() => {
                               setEditError(null);
                               setEditUser(user);
                             }}
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-[#78857a] hover:border-[#d9d2c2] hover:bg-white hover:text-[#26352a] transition-all shadow-xs"
                           >
                             <Pencil size={14} />
                           </button>
@@ -221,7 +227,7 @@ export default function UsersPage() {
                             <button
                               aria-label={`Deactivate ${user.name}`}
                               onClick={() => setDeactivateUser(user)}
-                              className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-[#78857a] hover:border-[#ffdada] hover:bg-[#fff5f5] hover:text-[#a34747] transition-all shadow-xs"
                             >
                               <UserMinus size={14} />
                             </button>

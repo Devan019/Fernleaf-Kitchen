@@ -1,15 +1,22 @@
 import clsx from "clsx";
 
-type BadgeVariant = "active" | "inactive" | "admin" | "kitchen" | "dispatch" | "driver" | "default";
+type BadgeVariant =
+  | "active"
+  | "inactive"
+  | "admin"
+  | "kitchen"
+  | "dispatch"
+  | "driver"
+  | "default";
 
 const VARIANT_CLASSES: Record<BadgeVariant, string> = {
-  active: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  inactive: "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
-  admin: "bg-violet-50 text-violet-700 ring-1 ring-violet-200",
-  kitchen: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-  dispatch: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
-  driver: "bg-teal-50 text-teal-700 ring-1 ring-teal-200",
-  default: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
+  active: "bg-[#294d33]/12 text-[#22442b] border border-[#294d33]/25",
+  inactive: "bg-[#8a8a82]/12 text-[#606059] border border-[#8a8a82]/25",
+  admin: "bg-[#294d33] text-[#fbfaf6] border border-[#1f3d27] shadow-xs",
+  kitchen: "bg-[#c8a96b]/20 text-[#8c6b29] border border-[#c8a96b]/35",
+  dispatch: "bg-[#35617a]/15 text-[#244c63] border border-[#35617a]/30",
+  driver: "bg-[#6c487a]/15 text-[#543461] border border-[#6c487a]/30",
+  default: "bg-[#eae5d8] text-[#4c594f] border border-[#d9d2c2]",
 };
 
 interface BadgeProps {
@@ -22,7 +29,7 @@ export function Badge({ variant = "default", children, className }: BadgeProps) 
   return (
     <span
       className={clsx(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide",
         VARIANT_CLASSES[variant],
         className,
       )}

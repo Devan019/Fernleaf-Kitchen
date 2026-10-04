@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "./Button";
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
@@ -35,39 +34,39 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200"
     >
       {/* Backdrop */}
       <div
         ref={overlayRef}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-[#14281a]/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Panel */}
       <div
-        className={`relative z-10 w-full ${widthClass} rounded-xl bg-white shadow-xl`}
+        className={`relative z-10 w-full ${widthClass} overflow-hidden rounded-3xl border border-[#d9d2c2] bg-[#fbfaf6] shadow-[0_25px_70px_rgba(20,40,26,0.18)]`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-[#eae5d8] px-7 py-5 bg-[#f5f1e6]/60">
           <h2
             id="modal-title"
-            className="text-base font-semibold text-slate-800"
+            className="font-serif text-lg font-semibold text-[#26352a]"
           >
             {title}
           </h2>
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-[#78857a] hover:bg-[#eae5d8] hover:text-[#26352a] transition-colors"
           >
             <X size={16} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5">{children}</div>
+        <div className="px-7 py-6">{children}</div>
       </div>
     </div>
   );

@@ -96,7 +96,7 @@ export function UserForm(props: UserFormProps) {
       {props.serverError && (
         <div
           role="alert"
-          className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="rounded-xl border border-[#ffdada] bg-[#fff5f5] px-4 py-3 text-xs text-[#a34747]"
         >
           {props.serverError}
         </div>
@@ -121,7 +121,7 @@ export function UserForm(props: UserFormProps) {
       />
 
       <Input
-        label={isEdit ? "New password (leave blank to keep)" : "Password"}
+        label={isEdit ? "New password (leave blank to keep current)" : "Password"}
         id="user-password"
         type="password"
         placeholder="••••••••"
@@ -131,7 +131,7 @@ export function UserForm(props: UserFormProps) {
       />
 
       <Select
-        label="Role"
+        label="Staff Role"
         id="user-role"
         options={ROLE_OPTIONS}
         placeholder="Select a role"
@@ -140,20 +140,20 @@ export function UserForm(props: UserFormProps) {
       />
 
       {isEdit && (
-        <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="flex items-center gap-3 rounded-xl border border-[#d9d2c2] bg-[#f5f1e6]/60 px-4 py-3">
           <input
             id="user-is-active"
             type="checkbox"
-            className="h-4 w-4 rounded border-slate-300 accent-emerald-600"
+            className="h-4 w-4 rounded-md border-[#d9d2c2] accent-[#294d33] cursor-pointer"
             {...register("isActive")}
           />
-          <label htmlFor="user-is-active" className="text-sm text-slate-700">
-            Account is active
+          <label htmlFor="user-is-active" className="text-xs font-semibold text-[#26352a] cursor-pointer">
+            Account active and allowed to sign in
           </label>
         </div>
       )}
 
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex justify-end gap-2.5 pt-4">
         <Button
           type="button"
           variant="secondary"
