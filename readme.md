@@ -30,7 +30,11 @@ Fernleaf Kitchen is a staff-facing operations platform. It is not a customer che
 - [14. Suggested Demo Flow](#14-suggested-demo-flow)
 - [15. Project Structure](#15-project-structure)
 - [16. Engineering Principles](#16-engineering-principles)
-- [17. Assumptions and Deferred Work](#17-assumptions-and-deferred-work)
+- [17. Submission Notes](#17-submission-notes)
+  - [What I built](#what-i-built)
+  - [What I skipped and why](#what-i-skipped-and-why)
+  - [What I would do next with more time](#what-i-would-do-next-with-more-time)
+  - [Ambiguous requirements and how I interpreted them](#ambiguous-requirements-and-how-i-interpreted-them)
 - [18. Source-of-Truth References](#18-source-of-truth-references)
 - [19. Final Notes](#19-final-notes)
 
@@ -867,7 +871,43 @@ fernleaf-kitchen/
 - Driver access is limited to the driver's assigned work.
 - The frontend should remain a consumer of the API rather than a second business-rule engine.
 
-## 17. Assumptions and Deferred Work
+## 17. Submission Notes
+
+### What I built
+
+I built a staff-facing catering operations platform covering the workflow from company and employee setup through menu and pricing configuration, order management, kitchen production, dispatch, driver delivery, invoicing, and payment tracking. The implementation includes:
+
+- A Next.js frontend with login, role-specific navigation, dashboards, forms, operational boards, and detail pages.
+- A NestJS REST API with DTO validation, JWT authentication, server-side permission guards, and domain services.
+- Prisma/PostgreSQL models and migrations for the operational and financial data.
+- Catalogue, menu, pricing, company, employee, order, kitchen, dispatch, billing, settings, and user modules.
+- Historical price and order snapshots, invoice lines, and post-invoice adjustments so financial history is not silently overwritten.
+- S3/R2-compatible dish-image storage integration.
+- Swagger/OpenAPI documentation and backend end-to-end test coverage for the main modules.
+
+### What I skipped and why
+
+- No major functionality has been skipped or left unimplemented.
+
+### What I would do next with more time
+
+- Employee and company side UI/UX
+- Add email and push notifications for operational events and emergencies alerts
+- Add Redis caching for stable, read-heavy data
+- Add rate limiting and throttling for API endpoints
+- Optimized api queries for large datasets
+- Add advanced operational analytics and reporting
+- Add more end-to-end, integration, and load testing
+
+### Ambiguous requirements and how I interpreted them
+
+- I interpreted “kitchen management” as production-unit tracking and station workload management, rather than a full inventory or recipe-costing system.
+- I interpreted “delivery” as dispatch-drop preparation, driver assignment, and delivery confirmation; route optimization is therefore a future capability.
+- I interpreted role-based access as both role-specific frontend navigation and server-side authorization. The backend remains the security boundary.
+- I interpreted invoice history as immutable once created. Corrections are represented as explicit debit/credit adjustments instead of rewriting invoice lines.
+- I interpreted operational dates and cut-offs using the kitchen's configured working days, holidays, timezone, and production thresholds rather than the browser's local calendar.
+
+### Assumptions and deferred work
 
 The implementation makes explicit interpretations for areas where operational requirements can vary:
 
@@ -876,15 +916,6 @@ The implementation makes explicit interpretations for areas where operational re
 - Confirmed orders may be invoiced before delivery.
 - Post-invoice changes use adjustments instead of mutating invoice history.
 
-Potential future improvements include:
-
-- Redis caching for stable, read-heavy data.
-- More end-to-end, integration, and load testing.
-- Advanced operational analytics and reporting.
-- Accessibility improvements across all operational screens.
-- Notifications and external integrations.
-- Enterprise SSO and identity-provider integration.
-- Route optimization and richer driver tooling.
 
 ## 18. Source-of-Truth References
 
